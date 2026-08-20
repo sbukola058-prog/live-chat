@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -50,17 +49,22 @@
     <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
   </div>
 
-  <!-- 1. STUDENT VIEW -->
-  <div id="student-dashboard" class="hidden flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-black">
-    <!-- STUDENT HEADER -->
-    <div class="px-4 py-3 border-b border-zinc-800 flex justify-between items-center bg-black shrink-0">
-      <div class="flex items-center gap-2">
-        <h2 id="student-username-display" class="font-bold text-base text-white">@student</h2>
-        <span id="student-speed-badge" class="text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full font-bold">⚡ Calc...</span>
+  <!-- 1. STUDENT VIEW (TIKTOK DM MATCH) -->
+  <div id="student-dashboard" class="hidden fixed inset-0 flex-col h-[100dvh] w-full max-w-md mx-auto bg-black z-50">
+    <!-- STUDENT DM HEADER -->
+    <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="tiktok-avatar rounded-full shrink-0">
+          <div id="student-avatar-display" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">ST</div>
+        </div>
+        <div>
+          <h2 id="student-username-display" class="font-bold text-sm text-white">@student</h2>
+          <span id="student-speed-badge" class="text-[9px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full font-bold">⚡ Calc...</span>
+        </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
         <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
-        <button onclick="logout()" class="text-xs text-zinc-400 hover:text-white font-semibold">Exit</button>
+        <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
     </div>
 
@@ -68,13 +72,13 @@
     <div id="student-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
     <!-- STUDENT INPUT BAR -->
-    <div class="p-3 border-t border-zinc-800 bg-black flex flex-col gap-1 shrink-0">
+    <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
       <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
         <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
           📎
           <input type="file" id="student-file-input" class="hidden" onchange="handleFileSelect(this, 'student-file-name')">
         </label>
-        <textarea id="student-message-input" rows="1" placeholder="Send a message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'student')"></textarea>
+        <textarea id="student-message-input" rows="1" placeholder="Message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'student')"></textarea>
         <button onclick="sendStudentMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0">Send</button>
       </div>
       <div id="student-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
@@ -82,23 +86,19 @@
   </div>
 
   <!-- 2. LECTURER INBOX & CHAT SCREEN (TIKTOK STYLE) -->
-  <div id="lecturer-dashboard" class="hidden h-[100dvh] w-full max-w-md mx-auto bg-black flex flex-col relative overflow-hidden">
+  <div id="lecturer-dashboard" class="hidden fixed inset-0 flex-col h-[100dvh] w-full max-w-md mx-auto bg-black relative overflow-hidden">
     
-    <!-- INBOX FEED PANEL (TIKTOK MATCH) -->
+    <!-- INBOX FEED PANEL -->
     <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
-      <!-- HEADER -->
       <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
         <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
       </div>
-
-      <!-- INBOX STUDENT LIST -->
       <div id="tiktok-feed" class="flex-1 overflow-y-auto divide-y divide-zinc-900/50"></div>
     </div>
 
-    <!-- DIRECT CHAT PANEL (TIKTOK DM SCREEN MATCH) -->
+    <!-- DIRECT CHAT PANEL -->
     <div id="lecturer-chat-panel" class="hidden flex-col h-full w-full bg-black fixed inset-0 z-50 max-w-md mx-auto">
-      <!-- DM TOP BAR -->
       <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
         <div class="flex items-center gap-3">
           <button onclick="closeMobileChat()" class="text-xl text-zinc-300 px-1 font-bold">←</button>
@@ -113,10 +113,8 @@
         <span id="chat-header-speed" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-zinc-800 text-zinc-300">⚡ Calc...</span>
       </div>
 
-      <!-- DM MESSAGES AREA -->
       <div id="lecturer-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
-      <!-- DM INPUT BAR -->
       <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
         <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
           <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
@@ -175,13 +173,16 @@
 
       if (userRole === 'lecturer') {
         document.getElementById('lecturer-dashboard').classList.remove('hidden');
+        document.getElementById('lecturer-dashboard').classList.add('flex');
         loadTikTokStudentFeed();
       } else {
         document.getElementById('student-dashboard').classList.remove('hidden');
+        document.getElementById('student-dashboard').classList.add('flex');
         activeStudentId = user.id;
 
         const cleanUsername = (profile?.full_name || user.email.split('@')[0]);
         document.getElementById('student-username-display').innerText = `@${cleanUsername}`;
+        document.getElementById('student-avatar-display').innerText = cleanUsername.substring(0, 2);
 
         startCountdownTimer();
         loadStudentMessages();
@@ -189,7 +190,6 @@
       subscribeToMessages();
     }
 
-    /* --- SHIFT + ENTER PARAGRAPHS --- */
     function handleKeyInput(event, role) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -237,7 +237,7 @@
 
     function formatMessageText(text) {
       if (!text) return '';
-      let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace font / text >/g, "&gt;");
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
       return safeText.replace(/\n/g, '<br>');
@@ -299,7 +299,7 @@
       return { label, color };
     }
 
-    /* --- TIKTOK-STYLE INBOX FEED --- */
+    /* --- LECTURER INBOX FEED --- */
     async function loadTikTokStudentFeed() {
       const { data: students } = await supabaseClient.from('profiles').select('*').eq('role', 'student');
       const feedContainer = document.getElementById('tiktok-feed');
@@ -422,7 +422,7 @@
       const badge = document.getElementById('student-speed-badge');
       if (badge) {
         badge.innerText = speedData.label;
-        badge.className = `text-[10px] px-2 py-0.5 rounded-full font-bold ${speedData.color}`;
+        badge.className = `text-[9px] px-2 py-0.5 rounded-full font-bold ${speedData.color}`;
       }
 
       renderMessages(messages || [], 'student-messages-box');
