@@ -1,15 +1,15 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Classroom Group Forum</title>
+  <title>Classroom Forum</title>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0b141a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3048/3048122.png">
@@ -20,8 +20,8 @@
       "short_name": "Classroom",
       "start_url": ".",
       "display": "standalone",
-      "background_color": "#000000",
-      "theme_color": "#000000",
+      "background_color": "#0b141a",
+      "theme_color": "#0b141a",
       "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3048/3048122.png", "sizes": "512x512", "type": "image/png" }]
     };
     const link = document.createElement('link');
@@ -33,70 +33,106 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { touch-action: manipulation; background-color: #000000; color: #ffffff; }
-    .avatar-lecturer { background: linear-gradient(45deg, #FFD700, #FF8C00); padding: 2px; }
-    .avatar-student { background: linear-gradient(45deg, #FE2C55, #25F4EE); padding: 1.5px; }
+    body { touch-action: manipulation; background-color: #0b141a; color: #e9edef; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .whatsapp-bg {
+      background-color: #0b141a;
+      background-image: radial-gradient(#202c33 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    .avatar-lecturer { background: linear-gradient(135deg, #FFD700, #FF8C00); padding: 2px; }
+    .avatar-student { background: linear-gradient(135deg, #00a884, #25F4EE); padding: 1.5px; }
+    .bubble-me { background-color: #005c4b; color: #e9edef; border-radius: 12px 0px 12px 12px; }
+    .bubble-other { background-color: #202c33; color: #e9edef; border-radius: 0px 12px 12px 12px; }
+    .bubble-lecturer { background-color: #1f2c34; border: 1px solid #FFD700; color: #fff; border-radius: 0px 12px 12px 12px; }
   </style>
 </head>
-<body class="fixed inset-0 w-full h-full font-sans bg-black text-white overflow-hidden">
+<body class="fixed inset-0 w-full h-full bg-[#0b141a] text-white overflow-hidden">
 
   <!-- AUTH SCREEN -->
-  <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black">
-    <div class="w-full max-w-sm p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
+  <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0b141a]">
+    <div class="w-full max-w-sm p-6 bg-[#111b21] border border-[#222d34] rounded-3xl shadow-2xl">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM FORUM</h1>
-        <p class="text-xs text-zinc-400 mt-1">Live Interactive Group Class</p>
+        <div class="w-14 h-14 bg-[#00a884]/20 border border-[#00a884] rounded-2xl mx-auto flex items-center justify-center text-2xl mb-3">🎓</div>
+        <h1 class="text-2xl font-black tracking-wider text-[#00a884]">CLASSROOM FORUM</h1>
+        <p class="text-xs text-zinc-400 mt-1">Strengthen Your Mind Together</p>
       </div>
 
       <div id="login-error" class="hidden mb-4 p-3 bg-red-950/80 border border-red-500/80 text-red-300 text-xs rounded-2xl text-center font-semibold"></div>
 
-      <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
-      <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
-      <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Enter Classroom</button>
-
-      <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-zinc-800 border border-cyan-500/50 text-cyan-400 p-3 rounded-2xl font-bold text-xs hover:bg-zinc-800/80 active:scale-95 transition flex items-center justify-center gap-2">
+      <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-[#202c33] border border-[#2a3942] text-white rounded-2xl mb-3 focus:outline-none focus:border-[#00a884] text-sm">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-[#202c33] border border-[#2a3942] text-white rounded-2xl mb-5 focus:outline-none focus:border-[#00a884] text-sm">
+      <button onclick="login()" class="w-full bg-[#00a884] hover:bg-[#008f6f] text-black p-3.5 rounded-2xl font-bold text-sm active:scale-95 transition">Enter Classroom</button>
+      
+      <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-[#202c33] border border-[#00a884]/40 text-[#00a884] p-3 rounded-2xl font-bold text-xs hover:bg-[#202c33]/80 active:scale-95 transition flex items-center justify-center gap-2">
         📲 Install App on Phone
       </button>
     </div>
   </div>
 
-  <!-- UNIFIED GROUP CLASSROOM DASHBOARD -->
-  <div id="group-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
-    <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0 gap-2">
-      <div class="flex items-center gap-2 min-w-0 flex-1">
+  <!-- MAIN GROUP DASHBOARD -->
+  <div id="group-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-[#0b141a] flex-col z-40">
+    
+    <!-- HEADER -->
+    <div class="p-3 bg-[#111b21] border-b border-[#222d34] flex items-center justify-between shrink-0 gap-2">
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <div id="user-avatar-wrapper" class="avatar-student rounded-full shrink-0">
-          <div id="user-avatar-display" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
+          <div id="user-avatar-display" class="w-9 h-9 bg-[#202c33] rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h2 id="user-handle-display" class="font-bold text-xs text-white truncate max-w-[110px]">@username</h2>
-            <span id="user-role-badge" class="text-[8px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-bold border border-cyan-500/30 shrink-0">STUDENT</span>
+            <h2 id="user-handle-display" class="font-bold text-xs text-white truncate max-w-[120px]">@username</h2>
+            <span id="user-role-badge" class="text-[8px] bg-[#00a884]/20 text-[#00a884] px-1.5 py-0.5 rounded-full font-bold border border-[#00a884]/30 shrink-0">STUDENT</span>
           </div>
-          <p class="text-[9px] text-emerald-400 flex items-center gap-1 mt-0.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Group Class
+          <p class="text-[9px] text-[#00a884] flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#00a884] animate-pulse"></span> Classroom Group Active
           </p>
         </div>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="installPWA()" class="text-[11px] bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
-        <button onclick="logout()" class="text-[11px] bg-zinc-900 text-zinc-300 px-2.5 py-1 rounded-full border border-zinc-800 font-semibold">Exit</button>
+        <button onclick="installPWA()" class="text-[11px] bg-[#202c33] text-[#00a884] px-2 py-1 rounded-full border border-[#00a884]/40 font-semibold">📲 Install</button>
+        <button onclick="logout()" class="text-[11px] bg-[#202c33] text-zinc-300 px-2.5 py-1 rounded-full border border-[#222d34] font-semibold">Exit</button>
       </div>
     </div>
 
-    <!-- MAIN LIVE CHAT STREAM -->
-    <div id="group-messages-box" class="flex-1 min-h-0 p-3.5 overflow-y-auto space-y-3 bg-black"></div>
+    <!-- LIVE CHAT CONTAINER -->
+    <div id="group-messages-box" class="flex-1 min-h-0 p-3.5 overflow-y-auto space-y-3 whatsapp-bg"></div>
+
+    <!-- RESTRICTION LOCK BANNER (If Student is Muted) -->
+    <div id="restriction-banner" class="hidden bg-amber-950/90 border-t border-amber-500/50 p-2.5 text-center shrink-0">
+      <p id="restriction-text" class="text-xs text-amber-200 font-semibold">🔒 You are temporarily muted by the lecturer. You can still react to messages with emojis!</p>
+    </div>
 
     <!-- INPUT BAR -->
-    <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
-      <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
-        <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
+    <div id="input-bar-container" class="p-2.5 bg-[#111b21] border-t border-[#222d34] flex flex-col gap-1 shrink-0">
+      <div class="flex items-center gap-2 bg-[#202c33] border border-[#2a3942] rounded-full px-3 py-1.5">
+        <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach image, document, link up to 50MB">
           📎
           <input type="file" id="group-file-input" class="hidden" onchange="handleFileSelect(this)">
         </label>
-        <textarea id="group-message-input" rows="1" placeholder="Type message to class..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event)"></textarea>
-        <button onclick="sendGroupMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0 hover:opacity-80">Send</button>
+        <textarea id="group-message-input" rows="1" placeholder="Type message to classroom..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event)"></textarea>
+        <button onclick="sendGroupMessage()" class="text-[#00a884] font-bold text-sm px-2 shrink-0 hover:opacity-80">Send</button>
       </div>
-      <div id="group-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
+      <div id="group-file-name" class="text-[10px] text-[#00a884] font-semibold hidden truncate px-3"></div>
+    </div>
+  </div>
+
+  <!-- LECTURER RESTRICT / MUTE MODAL -->
+  <div id="lecturer-mute-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-[#111b21] border border-[#222d34] p-5 rounded-3xl shadow-2xl text-center">
+      <h3 class="text-sm font-bold text-amber-400 mb-1">🎓 Restrict Student Messaging</h3>
+      <p id="target-student-label" class="text-xs text-zinc-300 mb-4">Mute @student01</p>
+
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <button onclick="applyRestriction(5)" class="p-2.5 bg-[#202c33] hover:bg-[#2a3942] text-xs font-bold rounded-xl border border-amber-500/30 text-amber-300">⏱️ 5 Minutes</button>
+        <button onclick="applyRestriction(10)" class="p-2.5 bg-[#202c33] hover:bg-[#2a3942] text-xs font-bold rounded-xl border border-amber-500/30 text-amber-300">⏱️ 10 Minutes</button>
+        <button onclick="applyRestriction(15)" class="p-2.5 bg-[#202c33] hover:bg-[#2a3942] text-xs font-bold rounded-xl border border-amber-500/30 text-amber-300">⏱️ 15 Minutes</button>
+        <button onclick="applyRestriction(30)" class="p-2.5 bg-[#202c33] hover:bg-[#2a3942] text-xs font-bold rounded-xl border border-amber-500/30 text-amber-300">⏱️ 30 Minutes</button>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="liftRestriction()" class="flex-1 p-2 bg-emerald-950 border border-emerald-500/50 text-emerald-300 text-xs font-bold rounded-xl">Unmute Student</button>
+        <button onclick="closeMuteModal()" class="p-2 bg-[#202c33] text-zinc-400 text-xs font-bold rounded-xl">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -110,12 +146,13 @@
     let userProfile = null;
     let renderedMessageIds = new Set();
     let allLoadedMessages = [];
+    let messageReactionsMap = {}; 
+    let currentMuteUntil = null;
+    let activeMuteCheckInterval = null;
+    let selectedTargetStudent = null;
     let deferredPrompt = null;
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
     async function installPWA() {
       const userAgent = navigator.userAgent || '';
@@ -192,11 +229,10 @@
       document.getElementById('auth-container').classList.add('hidden');
 
       let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
-
-      // Clean Username Parsing
+      
       const rawHandle = user.email ? user.email.split('@')[0] : 'user';
       const userRole = profile?.role ? profile.role.toLowerCase() : (rawHandle.toLowerCase().includes('lecturer') ? 'lecturer' : 'student');
-      const cleanName = (profile?.full_name && profile.full_name.trim()) ? profile.full_name.trim() : rawHandle;
+      const cleanName = profile?.full_name || rawHandle;
 
       userProfile = { id: user.id, email: user.email, role: userRole, name: cleanName };
 
@@ -212,16 +248,103 @@
         wrapper.className = "avatar-lecturer rounded-full shrink-0";
       } else {
         badge.innerText = "⚡ STUDENT";
-        badge.className = "text-[8px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-bold border border-cyan-500/30 shrink-0";
+        badge.className = "text-[8px] bg-[#00a884]/20 text-[#00a884] px-1.5 py-0.5 rounded-full font-bold border border-[#00a884]/30 shrink-0";
         wrapper.className = "avatar-student rounded-full shrink-0";
       }
 
-      const dash = document.getElementById('group-dashboard');
-      dash.classList.remove('hidden');
-      dash.classList.add('flex');
+      document.getElementById('group-dashboard').classList.remove('hidden');
+      document.getElementById('group-dashboard').classList.add('flex');
 
+      checkStudentMuteStatus();
+      loadAllReactions();
       loadAllGroupMessages();
-      subscribeToRealtimeGroupChat();
+      subscribeToRealtimeChannels();
+    }
+
+    // CHECK IF CURRENT STUDENT IS RESTRICTED BY LECTURER
+    async function checkStudentMuteStatus() {
+      if (userProfile.role === 'lecturer') return;
+
+      const { data: restriction } = await supabaseClient
+        .from('student_restrictions')
+        .select('*')
+        .eq('student_id', currentUser.id)
+        .gte('muted_until', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+
+      if (restriction) {
+        currentMuteUntil = new Date(restriction.muted_until).getTime();
+        startMuteCountdown();
+      } else {
+        liftMuteUI();
+      }
+    }
+
+    function startMuteCountdown() {
+      const banner = document.getElementById('restriction-banner');
+      const inputBar = document.getElementById('input-bar-container');
+      const bannerText = document.getElementById('restriction-text');
+
+      banner.classList.remove('hidden');
+      inputBar.classList.add('opacity-40', 'pointer-events-none');
+
+      clearInterval(activeMuteCheckInterval);
+      activeMuteCheckInterval = setInterval(() => {
+        const remainingSec = Math.max(0, Math.floor((currentMuteUntil - Date.now()) / 1000));
+        if (remainingSec <= 0) {
+          clearInterval(activeMuteCheckInterval);
+          liftMuteUI();
+        } else {
+          const mins = Math.floor(remainingSec / 60);
+          const secs = remainingSec % 60;
+          bannerText.innerText = `🔒 Lecturer restricted your messaging for ${mins}m ${secs}s. Emoji reactions allowed!`;
+        }
+      }, 1000);
+    }
+
+    function liftMuteUI() {
+      currentMuteUntil = null;
+      clearInterval(activeMuteCheckInterval);
+      document.getElementById('restriction-banner').classList.add('hidden');
+      document.getElementById('input-bar-container').classList.remove('opacity-40', 'pointer-events-none');
+    }
+
+    // LECTURER MUTE ACTION MODAL
+    function openMuteModal(studentId, studentName) {
+      if (userProfile.role !== 'lecturer') return;
+      selectedTargetStudent = { id: studentId, name: studentName };
+      document.getElementById('target-student-label').innerText = `Restrict @${studentName}`;
+      document.getElementById('lecturer-mute-modal').classList.remove('hidden');
+    }
+
+    function closeMuteModal() {
+      document.getElementById('lecturer-mute-modal').classList.add('hidden');
+      selectedTargetStudent = null;
+    }
+
+    async function applyRestriction(minutes) {
+      if (!selectedTargetStudent) return;
+      const mutedUntil = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+
+      await supabaseClient.from('student_restrictions').insert({
+        student_id: selectedTargetStudent.id,
+        student_name: selectedTargetStudent.name,
+        muted_until: mutedUntil,
+        muted_by: currentUser.id
+      });
+
+      closeMuteModal();
+    }
+
+    async function liftRestriction() {
+      if (!selectedTargetStudent) return;
+
+      await supabaseClient.from('student_restrictions')
+        .delete()
+        .eq('student_id', selectedTargetStudent.id);
+
+      closeMuteModal();
     }
 
     function handleKeyInput(event) {
@@ -253,7 +376,7 @@
       if (!fileInput.files || fileInput.files.length === 0) return null;
 
       const file = fileInput.files[0];
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop().toLowerCase();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `${currentUser.id}/${fileName}`;
 
@@ -266,69 +389,51 @@
       const { data: publicUrlData } = supabaseClient.storage.from('chat-attachments').getPublicUrl(filePath);
       fileInput.value = '';
       document.getElementById('group-file-name').classList.add('hidden');
-      return publicUrlData.publicUrl;
+
+      const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+      return { url: publicUrlData.publicUrl, type: isImg ? 'image' : 'file', name: file.name };
     }
 
     function formatMessageText(text) {
       if (!text) return '';
       let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const urlRegex = /(https?:\/\/[^\s]+)/g;
-      safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
+      safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-[#25F4EE] font-semibold break-all">${url}</a>`);
       return safeText.replace(/\n/g, '<br>');
     }
 
-    // ---- UNIQUE PER-STUDENT COLOR ----
-    // Deterministic hash -> HSL hue, so the same student always gets the same color,
-    // even across page reloads and different devices.
-    const userColorCache = {};
-    function getColorForUser(id) {
-      if (!id) return 'hsl(0, 0%, 70%)';
-      if (userColorCache[id]) return userColorCache[id];
-      let hash = 0;
-      for (let i = 0; i < id.length; i++) {
-        hash = id.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const hue = Math.abs(hash) % 360;
-      const color = `hsl(${hue}, 75%, 62%)`;
-      userColorCache[id] = color;
-      return color;
-    }
-
-    // CALCULATE DYNAMIC CHAT SPEED & APPRECIATION BADGE FOR EACH USER
-    function getUserSpeedAppreciationBadge(senderId) {
+    function getUserSpeedBadge(senderId) {
       const userMsgs = allLoadedMessages.filter(m => m.sender_id === senderId);
-      if (userMsgs.length < 2) return { label: '🌟 New Member', class: 'bg-zinc-800 text-zinc-300 border-zinc-700' };
+      if (userMsgs.length < 2) return { label: '🌟 New Member', class: 'bg-[#202c33] text-zinc-300 border-[#2a3942]' };
 
-      let totalGaps = 0;
-      let gapCount = 0;
-
+      let totalGaps = 0, gapCount = 0;
       for (let i = 1; i < userMsgs.length; i++) {
         const diffSec = (new Date(userMsgs[i].created_at) - new Date(userMsgs[i - 1].created_at)) / 1000;
-        if (diffSec > 0 && diffSec < 300) { // Limit window to active chatting gaps
-          totalGaps += diffSec;
-          gapCount++;
-        }
+        if (diffSec > 0 && diffSec < 300) { totalGaps += diffSec; gapCount++; }
       }
 
       if (gapCount === 0) return { label: '⚡ Lightning Fast', class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' };
-
       const avgSec = Math.round(totalGaps / gapCount);
 
-      if (avgSec <= 15) return { label: `⚡ ${avgSec}s • Lightning Fast`, class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' };
-      if (avgSec <= 45) return { label: `🔥 ${avgSec}s • Fast Reply`, class: 'bg-amber-500/20 text-amber-400 border-amber-500/40' };
-      return { label: `💬 ${avgSec}s • Steady`, class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' };
+      if (avgSec <= 15) return { label: `⚡ ${avgSec}s • Lightning`, class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' };
+      if (avgSec <= 45) return { label: `🔥 ${avgSec}s • Fast`, class: 'bg-amber-500/20 text-amber-400 border-amber-500/40' };
+      return { label: `💬 ${avgSec}s • Active`, class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' };
     }
 
-    // INSTANT OPTIMISTIC SENDER FUNCTION
+    // INSTANT SEND
     async function sendGroupMessage() {
+      if (currentMuteUntil && currentMuteUntil > Date.now()) {
+        alert("🔒 You are currently restricted by the lecturer from typing messages.");
+        return;
+      }
+
       const input = document.getElementById('group-message-input');
       let content = input.value.trim();
       input.value = '';
 
-      const fileUrl = await uploadAttachment();
-      if (fileUrl) content = content ? `${content}\n\n📎 Attachment: ${fileUrl}` : `📎 Attachment: ${fileUrl}`;
+      const attachment = await uploadAttachment();
+      if (!content && !attachment) return;
 
-      if (!content) return;
       updateActivityTimestamp();
 
       const tempId = `temp_${Date.now()}`;
@@ -338,6 +443,9 @@
         sender_name: userProfile.name,
         sender_role: userProfile.role,
         content: content,
+        attachment_url: attachment?.url || null,
+        attachment_type: attachment?.type || null,
+        attachment_name: attachment?.name || null,
         created_at: new Date().toISOString()
       };
 
@@ -349,7 +457,10 @@
         sender_id: currentUser.id,
         sender_name: userProfile.name,
         sender_role: userProfile.role,
-        content: content
+        content: content,
+        attachment_url: attachment?.url || null,
+        attachment_type: attachment?.type || null,
+        attachment_name: attachment?.name || null
       }).select().single();
 
       if (error) {
@@ -363,18 +474,23 @@
       }
     }
 
+    async function loadAllReactions() {
+      const { data: rxns } = await supabaseClient.from('message_reactions').select('*');
+      messageReactionsMap = {};
+      if (rxns) {
+        rxns.forEach(r => {
+          if (!messageReactionsMap[r.message_id]) messageReactionsMap[r.message_id] = [];
+          messageReactionsMap[r.message_id].push(r);
+        });
+      }
+    }
+
     async function loadAllGroupMessages() {
-      const { data: messages, error } = await supabaseClient
+      const { data: messages } = await supabaseClient
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
         .limit(150);
-
-      if (error) {
-        // Surface fetch errors instead of silently showing an empty chat —
-        // this is usually the tell-tale sign of an RLS policy blocking reads.
-        console.error('Failed to load messages:', error.message);
-      }
 
       const box = document.getElementById('group-messages-box');
       box.innerHTML = '';
@@ -382,6 +498,38 @@
       allLoadedMessages = messages || [];
 
       if (messages) messages.forEach(msg => appendSingleMessage(msg));
+    }
+
+    // EMOJI REACTION TOGGLE
+    async function toggleEmojiReaction(msgId, emoji) {
+      updateActivityTimestamp();
+      const existing = (messageReactionsMap[msgId] || []).find(r => r.user_id === currentUser.id && r.emoji === emoji);
+
+      if (existing) {
+        await supabaseClient.from('message_reactions').delete().eq('id', existing.id);
+      } else {
+        await supabaseClient.from('message_reactions').insert({
+          message_id: msgId,
+          user_id: currentUser.id,
+          user_name: userProfile.name,
+          emoji: emoji
+        });
+      }
+    }
+
+    function renderReactionTray(msgId) {
+      const rxns = messageReactionsMap[msgId] || [];
+      if (rxns.length === 0) return '';
+
+      const counts = {};
+      rxns.forEach(r => counts[r.emoji] = (counts[r.emoji] || 0) + 1);
+
+      let html = '<div class="flex items-center gap-1 mt-1 flex-wrap">';
+      Object.keys(counts).forEach(e => {
+        html += `<span class="text-[10px] bg-[#111b21] border border-[#2a3942] px-1.5 py-0.5 rounded-full flex items-center gap-1">${e} <span class="font-bold opacity-80">${counts[e]}</span></span>`;
+      });
+      html += '</div>';
+      return html;
     }
 
     function appendSingleMessage(msg) {
@@ -394,66 +542,86 @@
 
       const msgDiv = document.createElement('div');
       msgDiv.id = `msg-${msg.id}`;
-      msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
+      msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3 group`;
 
       const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      // Robust display name fallback: sender_name -> email prefix -> short id -> 'student'
-      let displayName = (msg.sender_name && msg.sender_name.trim()) ? msg.sender_name.trim() : '';
+      let displayName = msg.sender_name || 'student';
       if (displayName.includes('@')) displayName = displayName.split('@')[0];
-      if (!displayName) displayName = msg.sender_id ? `student_${msg.sender_id.substring(0, 5)}` : 'student';
 
-      const speedBadge = getUserSpeedAppreciationBadge(msg.sender_id);
-      const userColor = getColorForUser(msg.sender_id);
+      const speedBadge = getUserSpeedBadge(msg.sender_id);
 
+      // HEADER
       let senderHeader = '';
       if (!isMe) {
-        const roleTag = isLecturer
+        const roleTag = isLecturer 
           ? '<span class="text-[8px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
           : '<span class="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
 
+        const restrictBtn = (userProfile.role === 'lecturer' && !isLecturer)
+          ? `<button onclick="openMuteModal('${msg.sender_id}', '${displayName}')" class="text-[9px] bg-red-950 text-red-300 px-1.5 py-0.2 rounded font-bold border border-red-500/40 hover:bg-red-900 ml-1">🔇 Restrict</button>`
+          : '';
+
         senderHeader = `
           <div class="flex items-center gap-1.5 mb-1 px-1 flex-wrap">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color:${userColor}"></span>
-            <span class="text-[11px] font-bold" style="color:${isLecturer ? '#FCD34D' : userColor}">@${displayName}</span>
+            <span class="text-[11px] font-bold text-zinc-200">@${displayName}</span>
             ${roleTag}
             <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
+            ${restrictBtn}
           </div>
         `;
       } else {
         senderHeader = `
           <div class="flex items-center gap-1.5 mb-1 px-1 justify-end">
             <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
-            <span class="text-[11px] font-bold" style="color:${userColor}">You (@${displayName})</span>
+            <span class="text-[11px] font-bold text-zinc-300">You (@${displayName})</span>
           </div>
         `;
       }
 
-      let contentText = msg.deleted_for_everyone
-        ? '<i class="opacity-60">This message was deleted</i>'
+      // ATTACHMENT DISPLAY
+      let attachmentHTML = '';
+      if (msg.attachment_url) {
+        if (msg.attachment_type === 'image') {
+          attachmentHTML = `<a href="${msg.attachment_url}" target="_blank"><img src="${msg.attachment_url}" class="max-h-52 rounded-xl my-1.5 object-cover border border-[#2a3942]" /></a>`;
+        } else {
+          attachmentHTML = `<a href="${msg.attachment_url}" target="_blank" download class="flex items-center gap-2 p-2 bg-[#111b21] rounded-xl my-1.5 border border-[#2a3942] text-xs text-[#00a884] font-semibold truncate"><span class="text-base">📄</span> ${msg.attachment_name || 'Download File'}</a>`;
+        }
+      }
+
+      let contentText = msg.deleted_for_everyone 
+        ? '<i class="opacity-60 text-zinc-400">This message was deleted</i>' 
         : formatMessageText(msg.content);
 
-      // Each student's bubble gets a thin colored left border matching their handle color,
-      // so messages are identifiable at a glance even without reading the name.
-      let bubbleBg = 'bg-zinc-800 text-zinc-100';
-      let bubbleStyle = `border-left: 3px solid ${userColor}; border-top: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);`;
-      if (isMe) {
-        bubbleBg = 'bg-gradient-to-r from-cyan-600 to-pink-600 text-white';
-        bubbleStyle = '';
-      } else if (isLecturer) {
-        bubbleBg = 'bg-zinc-900 text-amber-100';
-        bubbleStyle = 'border-left: 3px solid #FCD34D; border-top: 1px solid rgba(252,211,77,0.3); border-right: 1px solid rgba(252,211,77,0.3); border-bottom: 1px solid rgba(252,211,77,0.3);';
-      }
+      let bubbleStyle = 'bubble-other';
+      if (isMe) bubbleStyle = 'bubble-me';
+      else if (isLecturer) bubbleStyle = 'bubble-lecturer';
 
       msgDiv.innerHTML = `
         ${senderHeader}
-        <div class="max-w-[85%] p-3 rounded-2xl text-xs relative group ${bubbleBg} shadow-sm" style="${bubbleStyle}">
+        <div class="max-w-[85%] p-3 text-xs relative ${bubbleStyle} shadow-md">
+          ${attachmentHTML}
           <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
-          <div class="flex items-center justify-end gap-2 mt-1 text-[9px] opacity-60">
-            <span>${timeStr}</span>
-            ${(isMe && !msg.deleted_for_everyone) ? `
-              <button onclick="deleteMessage('${msg.id}')" class="hidden group-hover:inline underline text-red-300 hover:text-red-200 ml-1">Delete</button>
-            ` : ''}
+          
+          <div id="rxns-${msg.id}">
+            ${renderReactionTray(msg.id)}
+          </div>
+
+          <div class="flex items-center justify-between gap-2 mt-1 text-[9px] opacity-60 border-t border-white/10 pt-1">
+            <!-- QUICK EMOJI PICKER -->
+            <div class="flex items-center gap-1 text-sm">
+              <button onclick="toggleEmojiReaction('${msg.id}', '👍')" class="hover:scale-125 transition">👍</button>
+              <button onclick="toggleEmojiReaction('${msg.id}', '❤️')" class="hover:scale-125 transition">❤️</button>
+              <button onclick="toggleEmojiReaction('${msg.id}', '😂')" class="hover:scale-125 transition">😂</button>
+              <button onclick="toggleEmojiReaction('${msg.id}', '💡')" class="hover:scale-125 transition">💡</button>
+              <button onclick="toggleEmojiReaction('${msg.id}', '🔥')" class="hover:scale-125 transition">🔥</button>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <span>${timeStr}</span>
+              ${(isMe && !msg.deleted_for_everyone) ? `
+                <button onclick="deleteMessage('${msg.id}')" class="hidden group-hover:inline underline text-red-300 hover:text-red-200 ml-1">Delete</button>
+              ` : ''}
+            </div>
           </div>
         </div>
       `;
@@ -465,10 +633,10 @@
     async function deleteMessage(msgId) {
       await supabaseClient.from('messages').update({ deleted_for_everyone: true }).eq('id', msgId);
       const msgText = document.querySelector(`#msg-${msgId} p`);
-      if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
+      if (msgText) msgText.innerHTML = '<i class="opacity-60 text-zinc-400">This message was deleted</i>';
     }
 
-    function subscribeToRealtimeGroupChat() {
+    function subscribeToRealtimeChannels() {
       supabaseClient
         .channel('public_group_chat')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
@@ -478,8 +646,18 @@
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
           if (payload.new.deleted_for_everyone) {
             const msgText = document.querySelector(`#msg-${payload.new.id} p`);
-            if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
+            if (msgText) msgText.innerHTML = '<i class="opacity-60 text-zinc-400">This message was deleted</i>';
           }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, async () => {
+          await loadAllReactions();
+          allLoadedMessages.forEach(m => {
+            const el = document.getElementById(`rxns-${m.id}`);
+            if (el) el.innerHTML = renderReactionTray(m.id);
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'student_restrictions' }, () => {
+          checkStudentMuteStatus();
         })
         .subscribe();
     }
