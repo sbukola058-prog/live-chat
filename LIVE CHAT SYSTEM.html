@@ -137,8 +137,8 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://qkwlasexypebdvkbhgmd.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_lrONtIn4ve7PZvCWtNkuvg_KGwDlwvO";
+    const SUPABASE_URL = "https://asovhkrwuirhzubvzezb.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_yoWyQctUADKZGOyYjYYHcQ_N1rmJa-9";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
