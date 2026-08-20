@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -53,7 +53,7 @@
       <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
       <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
       <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Enter Classroom</button>
-      
+
       <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-zinc-800 border border-cyan-500/50 text-cyan-400 p-3 rounded-2xl font-bold text-xs hover:bg-zinc-800/80 active:scale-95 transition flex items-center justify-center gap-2">
         📲 Install App on Phone
       </button>
@@ -192,11 +192,11 @@
       document.getElementById('auth-container').classList.add('hidden');
 
       let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      
+
       // Clean Username Parsing
       const rawHandle = user.email ? user.email.split('@')[0] : 'user';
       const userRole = profile?.role ? profile.role.toLowerCase() : (rawHandle.toLowerCase().includes('lecturer') ? 'lecturer' : 'student');
-      const cleanName = profile?.full_name || rawHandle;
+      const cleanName = (profile?.full_name && profile.full_name.trim()) ? profile.full_name.trim() : rawHandle;
 
       userProfile = { id: user.id, email: user.email, role: userRole, name: cleanName };
 
@@ -277,6 +277,23 @@
       return safeText.replace(/\n/g, '<br>');
     }
 
+    // ---- UNIQUE PER-STUDENT COLOR ----
+    // Deterministic hash -> HSL hue, so the same student always gets the same color,
+    // even across page reloads and different devices.
+    const userColorCache = {};
+    function getColorForUser(id) {
+      if (!id) return 'hsl(0, 0%, 70%)';
+      if (userColorCache[id]) return userColorCache[id];
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = Math.abs(hash) % 360;
+      const color = `hsl(${hue}, 75%, 62%)`;
+      userColorCache[id] = color;
+      return color;
+    }
+
     // CALCULATE DYNAMIC CHAT SPEED & APPRECIATION BADGE FOR EACH USER
     function getUserSpeedAppreciationBadge(senderId) {
       const userMsgs = allLoadedMessages.filter(m => m.sender_id === senderId);
@@ -347,11 +364,17 @@
     }
 
     async function loadAllGroupMessages() {
-      const { data: messages } = await supabaseClient
+      const { data: messages, error } = await supabaseClient
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
         .limit(150);
+
+      if (error) {
+        // Surface fetch errors instead of silently showing an empty chat —
+        // this is usually the tell-tale sign of an RLS policy blocking reads.
+        console.error('Failed to load messages:', error.message);
+      }
 
       const box = document.getElementById('group-messages-box');
       box.innerHTML = '';
@@ -374,22 +397,25 @@
       msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
 
       const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      // Ensure precise student username fallback extraction
-      let displayName = msg.sender_name || 'student';
+
+      // Robust display name fallback: sender_name -> email prefix -> short id -> 'student'
+      let displayName = (msg.sender_name && msg.sender_name.trim()) ? msg.sender_name.trim() : '';
       if (displayName.includes('@')) displayName = displayName.split('@')[0];
+      if (!displayName) displayName = msg.sender_id ? `student_${msg.sender_id.substring(0, 5)}` : 'student';
 
       const speedBadge = getUserSpeedAppreciationBadge(msg.sender_id);
+      const userColor = getColorForUser(msg.sender_id);
 
       let senderHeader = '';
       if (!isMe) {
-        const roleTag = isLecturer 
+        const roleTag = isLecturer
           ? '<span class="text-[8px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
           : '<span class="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
 
         senderHeader = `
           <div class="flex items-center gap-1.5 mb-1 px-1 flex-wrap">
-            <span class="text-[11px] font-bold text-zinc-200">@${displayName}</span>
+            <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color:${userColor}"></span>
+            <span class="text-[11px] font-bold" style="color:${isLecturer ? '#FCD34D' : userColor}">@${displayName}</span>
             ${roleTag}
             <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
           </div>
@@ -398,22 +424,30 @@
         senderHeader = `
           <div class="flex items-center gap-1.5 mb-1 px-1 justify-end">
             <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
-            <span class="text-[11px] font-bold text-zinc-300">You (@${displayName})</span>
+            <span class="text-[11px] font-bold" style="color:${userColor}">You (@${displayName})</span>
           </div>
         `;
       }
 
-      let contentText = msg.deleted_for_everyone 
-        ? '<i class="opacity-60">This message was deleted</i>' 
+      let contentText = msg.deleted_for_everyone
+        ? '<i class="opacity-60">This message was deleted</i>'
         : formatMessageText(msg.content);
 
-      let bubbleBg = 'bg-zinc-800 text-zinc-100 border border-zinc-700/50';
-      if (isMe) bubbleBg = 'bg-gradient-to-r from-cyan-600 to-pink-600 text-white';
-      else if (isLecturer) bubbleBg = 'bg-zinc-900 border border-amber-500/50 text-amber-100';
+      // Each student's bubble gets a thin colored left border matching their handle color,
+      // so messages are identifiable at a glance even without reading the name.
+      let bubbleBg = 'bg-zinc-800 text-zinc-100';
+      let bubbleStyle = `border-left: 3px solid ${userColor}; border-top: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);`;
+      if (isMe) {
+        bubbleBg = 'bg-gradient-to-r from-cyan-600 to-pink-600 text-white';
+        bubbleStyle = '';
+      } else if (isLecturer) {
+        bubbleBg = 'bg-zinc-900 text-amber-100';
+        bubbleStyle = 'border-left: 3px solid #FCD34D; border-top: 1px solid rgba(252,211,77,0.3); border-right: 1px solid rgba(252,211,77,0.3); border-bottom: 1px solid rgba(252,211,77,0.3);';
+      }
 
       msgDiv.innerHTML = `
         ${senderHeader}
-        <div class="max-w-[85%] p-3 rounded-2xl text-xs relative group ${bubbleBg} shadow-sm">
+        <div class="max-w-[85%] p-3 rounded-2xl text-xs relative group ${bubbleBg} shadow-sm" style="${bubbleStyle}">
           <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
           <div class="flex items-center justify-end gap-2 mt-1 text-[9px] opacity-60">
             <span>${timeStr}</span>
