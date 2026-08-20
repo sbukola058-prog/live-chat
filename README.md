@@ -3,151 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Classroom Live Chat</title>
+  <title>Classroom Chat</title>
   
-  <!-- PWA & Mobile App Setup -->
+  <!-- PWA & Mobile Web App Settings -->
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Classroom Feed">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3048/3048122.png">
 
-  <!-- Dynamic PWA Manifest Injection -->
   <script>
     const manifest = {
-      "name": "Classroom Live Chat",
-      "short_name": "ClassFeed",
+      "name": "Classroom Feed",
+      "short_name": "Classroom",
       "start_url": ".",
       "display": "standalone",
       "background_color": "#000000",
       "theme_color": "#000000",
-      "icons": [
-        {
-          "src": "https://cdn-icons-png.flaticon.com/512/3048/3048122.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3048/3048122.png", "sizes": "512x512", "type": "image/png" }]
     };
-    const stringManifest = JSON.stringify(manifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
     const link = document.createElement('link');
     link.rel = 'manifest';
-    link.href = manifestURL;
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'}));
     document.head.appendChild(link);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      touch-action: manipulation;
-    }
-    .tiktok-avatar-ring {
-      background: linear-gradient(45deg, #25F4EE, #FE2C55);
-      padding: 2px;
-    }
-    .tiktok-card {
-      background: #181818;
-      border: 1px solid #282828;
-    }
-    .tiktok-card:active {
-      border-color: #FE2C55;
-      transform: scale(0.98);
+    body { touch-action: manipulation; background-color: #000000; color: #ffffff; }
+    .tiktok-avatar {
+      background: linear-gradient(45deg, #FE2C55, #25F4EE);
+      padding: 1.5px;
     }
   </style>
 </head>
-<body class="bg-black text-white h-[100dvh] font-sans overflow-hidden select-none">
+<body class="h-[100dvh] w-screen font-sans overflow-hidden select-none bg-black text-white">
 
-  <!-- LOGIN CONTAINER -->
-  <div id="auth-container" class="max-w-md mx-[5%] mt-12 p-6 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl">
+  <!-- AUTH SCREEN -->
+  <div id="auth-container" class="max-w-sm mx-auto mt-16 p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
     <div class="text-center mb-6">
-      <span class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM</span>
-      <h2 class="text-lg font-bold text-zinc-300">Portal Login</h2>
+      <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM</h1>
+      <p class="text-xs text-zinc-400 mt-1">Sign in to your portal</p>
     </div>
-    <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-xl mb-3 focus:outline-none focus:border-cyan-400" onkeydown="if(event.key==='Enter') login()">
-    <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-xl mb-5 focus:outline-none focus:border-cyan-400" onkeydown="if(event.key==='Enter') login()">
-    <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-500 to-pink-500 text-white p-3.5 rounded-xl font-bold hover:opacity-90 transition active:scale-95">Sign In</button>
+    <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
+    <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
+    <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
   </div>
 
-  <!-- 1. STUDENT DASHBOARD (MOBILE OPTIMIZED) -->
-  <div id="student-dashboard" class="hidden flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-gray-900 shadow-2xl">
+  <!-- 1. STUDENT VIEW -->
+  <div id="student-dashboard" class="hidden flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-black">
     <!-- STUDENT HEADER -->
-    <div class="p-3 border-b border-gray-800 flex justify-between items-center bg-gray-900 text-white">
+    <div class="px-4 py-3 border-b border-zinc-800 flex justify-between items-center bg-black shrink-0">
       <div class="flex items-center gap-2">
-        <div>
-          <h2 id="student-username-display" class="font-bold text-sm">@student</h2>
-          <span id="student-speed-badge" class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">⚡ Calculating...</span>
-        </div>
+        <h2 id="student-username-display" class="font-bold text-base text-white">@student</h2>
+        <span id="student-speed-badge" class="text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full font-bold">⚡ Calc...</span>
       </div>
-
-      <div class="flex items-center gap-2">
-        <div class="flex flex-col items-end">
-          <span class="text-[9px] text-gray-400 uppercase font-bold">Timer</span>
-          <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-0.5 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
-        </div>
-        <button onclick="logout()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700">Exit</button>
+      <div class="flex items-center gap-3">
+        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
+        <button onclick="logout()" class="text-xs text-zinc-400 hover:text-white font-semibold">Exit</button>
       </div>
     </div>
 
-    <div id="student-messages-box" class="flex-1 p-3 overflow-y-auto space-y-3 bg-black"></div>
+    <!-- STUDENT MESSAGES CONTAINER -->
+    <div id="student-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
-    <!-- STUDENT INPUT -->
-    <div class="p-3 border-t border-gray-800 bg-gray-900 flex flex-col gap-1.5">
-      <div class="flex items-end gap-2">
-        <label class="cursor-pointer bg-zinc-800 p-3 rounded-xl border border-zinc-700 flex items-center justify-center shrink-0" title="Attach file (Up to 50MB)">
+    <!-- STUDENT INPUT BAR -->
+    <div class="p-3 border-t border-zinc-800 bg-black flex flex-col gap-1 shrink-0">
+      <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
+        <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
           📎
           <input type="file" id="student-file-input" class="hidden" onchange="handleFileSelect(this, 'student-file-name')">
         </label>
-        <textarea id="student-message-input" rows="1" placeholder="Message (Shift+Enter for paragraph)..." class="flex-1 p-2.5 bg-zinc-800 border border-zinc-700 text-white rounded-xl focus:outline-none focus:border-cyan-400 resize-none max-h-24 text-xs" onkeydown="handleKeyInput(event, 'student')"></textarea>
-        <button onclick="sendStudentMessage()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-blue-700 shrink-0">Send</button>
+        <textarea id="student-message-input" rows="1" placeholder="Send a message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'student')"></textarea>
+        <button onclick="sendStudentMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0">Send</button>
       </div>
-      <div id="student-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate"></div>
+      <div id="student-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
     </div>
   </div>
 
-  <!-- 2. LECTURER DASHBOARD (TIKTOK STYLE MOBILE RESPONSIVE) -->
-  <div id="lecturer-dashboard" class="hidden h-[100dvh] w-full bg-black text-white flex flex-col">
-    <!-- TOP BAR -->
-    <div class="p-3 bg-zinc-900 border-b border-zinc-800 flex justify-between items-center px-4 shrink-0">
-      <div class="flex items-center gap-2">
-        <span class="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM FEED</span>
-        <span class="text-[10px] bg-pink-600/30 text-pink-400 border border-pink-500/50 px-2 py-0.5 rounded-full font-bold">LECTURER</span>
+  <!-- 2. LECTURER INBOX & CHAT SCREEN (TIKTOK STYLE) -->
+  <div id="lecturer-dashboard" class="hidden h-[100dvh] w-full max-w-md mx-auto bg-black flex flex-col relative overflow-hidden">
+    
+    <!-- INBOX FEED PANEL (TIKTOK MATCH) -->
+    <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
+      <!-- HEADER -->
+      <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
+        <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
+        <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
       </div>
-      <button onclick="logout()" class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full border border-zinc-700">Logout</button>
+
+      <!-- INBOX STUDENT LIST -->
+      <div id="tiktok-feed" class="flex-1 overflow-y-auto divide-y divide-zinc-900/50"></div>
     </div>
 
-    <div class="flex-1 flex overflow-hidden relative">
-      <!-- LEFT FEED (Mobile Full Width / Desktop 1/2 Width) -->
-      <div id="lecturer-feed-panel" class="w-full md:w-1/2 p-3 overflow-y-auto space-y-3 border-r border-zinc-800 block md:block">
-        <h3 class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Student Profiles Feed</h3>
-        <div id="tiktok-feed" class="space-y-2.5"></div>
-      </div>
-
-      <!-- RIGHT CHAT AREA (Mobile Full Screen Overlay / Desktop 1/2 Width) -->
-      <div id="lecturer-chat-panel" class="hidden md:flex w-full md:w-1/2 flex-col bg-zinc-950 h-full absolute md:relative inset-0 z-10 md:z-auto">
-        <!-- CHAT HEADER WITH BACK BUTTON FOR MOBILE -->
-        <div id="lecturer-chat-header" class="p-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900 shrink-0">
-          <div class="text-zinc-500 italic text-xs">Select a student from feed</div>
-        </div>
-
-        <div id="lecturer-messages-box" class="flex-1 p-3 overflow-y-auto space-y-3 bg-zinc-950"></div>
-
-        <!-- LECTURER INPUT -->
-        <div class="p-3 border-t border-zinc-800 flex flex-col gap-1.5 bg-zinc-900 shrink-0">
-          <div class="flex items-end gap-2">
-            <label class="cursor-pointer bg-zinc-800 p-3 rounded-xl border border-zinc-700 flex items-center justify-center shrink-0" title="Attach file (Up to 50MB)">
-              📎
-              <input type="file" id="lecturer-file-input" class="hidden" onchange="handleFileSelect(this, 'lecturer-file-name')">
-            </label>
-            <textarea id="lecturer-message-input" rows="1" placeholder="Reply to student..." class="flex-1 p-2.5 bg-zinc-800 border border-zinc-700 text-white rounded-xl focus:outline-none focus:border-cyan-400 resize-none max-h-24 text-xs" onkeydown="handleKeyInput(event, 'lecturer')"></textarea>
-            <button onclick="sendLecturerMessage()" class="bg-gradient-to-r from-cyan-500 to-pink-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs shrink-0">Reply</button>
+    <!-- DIRECT CHAT PANEL (TIKTOK DM SCREEN MATCH) -->
+    <div id="lecturer-chat-panel" class="hidden flex-col h-full w-full bg-black fixed inset-0 z-50 max-w-md mx-auto">
+      <!-- DM TOP BAR -->
+      <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
+        <div class="flex items-center gap-3">
+          <button onclick="closeMobileChat()" class="text-xl text-zinc-300 px-1 font-bold">←</button>
+          <div class="tiktok-avatar rounded-full shrink-0">
+            <div id="chat-header-avatar" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">ST</div>
           </div>
-          <div id="lecturer-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate"></div>
+          <div>
+            <h2 id="chat-header-username" class="font-bold text-sm text-white">@student</h2>
+            <p class="text-[10px] text-zinc-400">Direct Chat</p>
+          </div>
         </div>
+        <span id="chat-header-speed" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-zinc-800 text-zinc-300">⚡ Calc...</span>
+      </div>
+
+      <!-- DM MESSAGES AREA -->
+      <div id="lecturer-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
+
+      <!-- DM INPUT BAR -->
+      <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
+        <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
+          <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
+            📎
+            <input type="file" id="lecturer-file-input" class="hidden" onchange="handleFileSelect(this, 'lecturer-file-name')">
+          </label>
+          <textarea id="lecturer-message-input" rows="1" placeholder="Message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'lecturer')"></textarea>
+          <button onclick="sendLecturerMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0">Send</button>
+        </div>
+        <div id="lecturer-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
       </div>
     </div>
+
   </div>
 
   <script>
@@ -160,16 +142,6 @@
     let activeStudentId = null;
     let countdownTimer = null;
     let timeLeft = 120;
-
-    // Register Service Worker for PWA installation
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        const swCode = `self.addEventListener('fetch', (e) => {});`;
-        const blob = new Blob([swCode], { type: 'text/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(() => {});
-      });
-    }
 
     window.onload = async () => {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -217,7 +189,7 @@
       subscribeToMessages();
     }
 
-    /* --- SHIFT + ENTER PARAGRAPH HANDLER --- */
+    /* --- SHIFT + ENTER PARAGRAPHS --- */
     function handleKeyInput(event, role) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -231,7 +203,7 @@
       if (input.files.length > 0) {
         const file = input.files[0];
         if (file.size > 50 * 1024 * 1024) {
-          alert("File exceeds maximum size limit of 50MB!");
+          alert("File exceeds 50MB limit!");
           input.value = '';
           label.classList.add('hidden');
           return;
@@ -243,7 +215,6 @@
       }
     }
 
-    /* --- FILE UPLOAD TO SUPABASE STORAGE --- */
     async function uploadAttachment(fileInputId) {
       const fileInput = document.getElementById(fileInputId);
       if (!fileInput.files || fileInput.files.length === 0) return null;
@@ -253,35 +224,25 @@
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `${currentUser.id}/${fileName}`;
 
-      const { data, error } = await supabaseClient.storage
-        .from('chat-attachments')
-        .upload(filePath, file);
-
+      const { data, error } = await supabaseClient.storage.from('chat-attachments').upload(filePath, file);
       if (error) {
-        alert("File upload failed: " + error.message);
+        alert("Upload failed: " + error.message);
         return null;
       }
 
-      const { data: publicUrlData } = supabaseClient.storage
-        .from('chat-attachments')
-        .getPublicUrl(filePath);
-
+      const { data: publicUrlData } = supabaseClient.storage.from('chat-attachments').getPublicUrl(filePath);
       fileInput.value = '';
-      return { url: publicUrlData.publicUrl, name: file.name, type: file.type };
+      return { url: publicUrlData.publicUrl, name: file.name };
     }
 
-    /* --- AUTO-LINKIFY & HTML FORMATTING --- */
     function formatMessageText(text) {
       if (!text) return '';
       let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const urlRegex = /(https?:\/\/[^\s]+)/g;
-      safeText = safeText.replace(urlRegex, (url) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-300 font-semibold break-all">${url}</a>`;
-      });
+      safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
       return safeText.replace(/\n/g, '<br>');
     }
 
-    /* --- TIMER & SPEED FUNCTIONS --- */
     function startCountdownTimer() {
       clearInterval(countdownTimer);
       timeLeft = 120;
@@ -292,7 +253,7 @@
         updateTimerDisplay();
         if (timeLeft <= 0) {
           clearInterval(countdownTimer);
-          alert("⏰ TIME IS UP! You failed to reply with at least 10 characters within 2 minutes.");
+          alert("⏰ TIME IS UP! You failed to reply within 2 minutes.");
           logout();
         }
       }, 1000);
@@ -326,10 +287,10 @@
         }
       }
 
-      if (count === 0) return { label: "⚡ No Replies", color: "bg-gray-600 text-white" };
+      if (count === 0) return { label: "No Replies Yet", color: "bg-zinc-800 text-zinc-400" };
 
       const avgSec = Math.round(totalSpeedSec / count);
-      let label = `⚡ ${avgSec}s`;
+      let label = `${avgSec}s avg`;
       let color = "bg-emerald-500 text-white";
 
       if (avgSec > 60) color = "bg-red-500 text-white";
@@ -338,14 +299,14 @@
       return { label, color };
     }
 
-    /* --- LECTURER DASHBOARD (MOBILE NAVIGATION SLIDER) --- */
+    /* --- TIKTOK-STYLE INBOX FEED --- */
     async function loadTikTokStudentFeed() {
       const { data: students } = await supabaseClient.from('profiles').select('*').eq('role', 'student');
       const feedContainer = document.getElementById('tiktok-feed');
       feedContainer.innerHTML = '';
 
       if (!students || students.length === 0) {
-        feedContainer.innerHTML = '<p class="text-xs text-zinc-500">No student profiles found.</p>';
+        feedContainer.innerHTML = '<p class="text-xs text-zinc-500 p-4 text-center">No student messages yet.</p>';
         return;
       }
 
@@ -361,7 +322,7 @@
 
         return {
           student,
-          previewText: latestMsg ? latestMsg.content : "No messages yet",
+          previewText: latestMsg ? latestMsg.content : "Say hi to start dynamic conversation",
           lastTimestamp: latestMsg ? new Date(latestMsg.created_at).getTime() : 0,
           speedData
         };
@@ -373,70 +334,52 @@
         const studentName = student.full_name || student.email.split('@')[0];
 
         const card = document.createElement('div');
-        card.className = `tiktok-card p-3 rounded-2xl flex items-center justify-between cursor-pointer transition ${activeStudentId === student.id ? 'border-cyan-400 bg-zinc-900' : ''}`;
-        card.onclick = () => selectStudentThread(student);
+        card.className = 'flex items-center justify-between p-3.5 hover:bg-zinc-900/80 cursor-pointer transition active:bg-zinc-900';
+        card.onclick = () => openStudentChat(student, speedData);
 
         card.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <div class="tiktok-avatar-ring rounded-full shrink-0">
-              <div class="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase border border-zinc-800">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <div class="tiktok-avatar rounded-full shrink-0">
+              <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase border border-zinc-800">
                 ${studentName.substring(0, 2)}
               </div>
             </div>
             <div class="overflow-hidden">
-              <div class="font-bold text-xs text-zinc-100">@${studentName}</div>
-              <p class="text-[11px] text-zinc-400 truncate max-w-[130px] sm:max-w-[180px]">${previewText}</p>
+              <h3 class="font-bold text-sm text-white truncate">@${studentName}</h3>
+              <p class="text-xs text-zinc-400 truncate mt-0.5">${previewText}</p>
             </div>
           </div>
-          <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${speedData.color} shrink-0">${speedData.label}</span>
+          <span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${speedData.color} shrink-0 ml-2">${speedData.label}</span>
         `;
         feedContainer.appendChild(card);
       });
     }
 
-    function closeMobileChat() {
-      document.getElementById('lecturer-chat-panel').classList.add('hidden');
-    }
-
-    async function selectStudentThread(student) {
+    function openStudentChat(student, speedData) {
       activeStudentId = student.id;
       const studentName = student.full_name || student.email.split('@')[0];
 
-      // Show chat panel on mobile
-      const chatPanel = document.getElementById('lecturer-chat-panel');
-      chatPanel.classList.remove('hidden');
+      document.getElementById('chat-header-username').innerText = `@${studentName}`;
+      document.getElementById('chat-header-avatar').innerText = studentName.substring(0, 2);
 
-      const { data: messages } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .eq('student_id', student.id)
-        .order('created_at', { ascending: true });
+      const speedBadge = document.getElementById('chat-header-speed');
+      speedBadge.innerText = speedData.label;
+      speedBadge.className = `text-[10px] px-2.5 py-0.5 rounded-full font-bold ${speedData.color}`;
 
-      const speedData = calculateAvgResponseSpeed(messages || [], student.id);
+      document.getElementById('lecturer-chat-panel').classList.remove('hidden');
+      document.getElementById('lecturer-chat-panel').classList.add('flex');
 
-      document.getElementById('lecturer-chat-header').innerHTML = `
-        <div class="flex items-center gap-2">
-          <button onclick="closeMobileChat()" class="md:hidden text-lg bg-zinc-800 px-2.5 py-1 rounded-lg text-zinc-300">←</button>
-          <div class="tiktok-avatar-ring rounded-full">
-            <div class="w-7 h-7 bg-zinc-900 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase">
-              ${studentName.substring(0, 2)}
-            </div>
-          </div>
-          <div>
-            <h3 class="font-bold text-xs text-white">@${studentName}</h3>
-            <p class="text-[9px] text-emerald-400 font-semibold">Active Session</p>
-          </div>
-        </div>
-        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${speedData.color}">${speedData.label}</span>
-      `;
+      loadLecturerMessages();
+    }
 
-      renderMessages(messages || [], 'lecturer-messages-box');
+    function closeMobileChat() {
+      document.getElementById('lecturer-chat-panel').classList.add('hidden');
+      document.getElementById('lecturer-chat-panel').classList.remove('flex');
       loadTikTokStudentFeed();
     }
 
     async function loadLecturerMessages() {
       if (!activeStudentId) return;
-
       const { data: messages } = await supabaseClient
         .from('messages')
         .select('*')
@@ -467,7 +410,7 @@
       input.value = '';
     }
 
-    /* --- STUDENT DASHBOARD --- */
+    /* --- STUDENT ACTIONS --- */
     async function loadStudentMessages() {
       const { data: messages } = await supabaseClient
         .from('messages')
@@ -500,7 +443,7 @@
       if (content.length >= 10) {
         startCountdownTimer();
       } else {
-        alert("⚠️ Message sent, but it was under 10 characters! Your 2-minute survival timer was NOT reset.");
+        alert("⚠️ Message under 10 characters! 2-minute timer was NOT reset.");
       }
 
       await supabaseClient.from('messages').insert({
@@ -512,7 +455,7 @@
       input.value = '';
     }
 
-    /* --- SHARED RENDER & DELETE LOGIC --- */
+    /* --- MESSAGE RENDER logic --- */
     function renderMessages(messages, containerId) {
       const box = document.getElementById(containerId);
       box.innerHTML = '';
@@ -528,15 +471,13 @@
           ? '<i class="opacity-60">This message was deleted</i>' 
           : formatMessageText(msg.content);
 
-        const bgStyle = containerId === 'lecturer-messages-box' 
-          ? (isMe ? 'bg-gradient-to-r from-cyan-500 to-pink-500 text-white' : 'bg-zinc-800 text-zinc-200 border border-zinc-700')
-          : (isMe ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-700');
+        const bgStyle = isMe ? 'bg-gradient-to-r from-cyan-500 to-pink-500 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-700/50';
 
         msgDiv.innerHTML = `
-          <div class="max-w-[85%] md:max-w-md p-2.5 rounded-2xl text-xs relative group ${bgStyle}">
+          <div class="max-w-[80%] p-3 rounded-2xl text-xs relative group ${bgStyle}">
             <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
             ${!msg.deleted_for_everyone ? `
-              <div class="hidden group-hover:flex gap-2 mt-1.5 text-[9px] opacity-80 border-t border-white/20 pt-1">
+              <div class="hidden group-hover:flex gap-2 mt-1 text-[9px] opacity-80 border-t border-white/20 pt-1">
                 <button onclick="deleteMessage('${msg.id}', 'me')" class="underline hover:text-red-300">Delete for me</button>
                 <button onclick="deleteMessage('${msg.id}', 'everyone')" class="underline hover:text-red-300">Delete for everyone</button>
               </div>
@@ -557,11 +498,8 @@
         await supabaseClient.from('messages').update({ deleted_by: updatedDeletedBy }).eq('id', msgId);
       }
 
-      if (userProfile.role === 'lecturer') {
-        loadLecturerMessages();
-      } else {
-        loadStudentMessages();
-      }
+      if (userProfile.role === 'lecturer') loadLecturerMessages();
+      else loadStudentMessages();
     }
 
     function subscribeToMessages() {
