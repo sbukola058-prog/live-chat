@@ -49,9 +49,9 @@
     <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
   </div>
 
-  <!-- 1. STUDENT VIEW (TIKTOK DM MATCH) -->
-  <div id="student-dashboard" class="hidden fixed inset-0 flex-col h-[100dvh] w-full max-w-md mx-auto bg-black z-50">
-    <!-- STUDENT DM HEADER -->
+  <!-- 1. STUDENT VIEW -->
+  <div id="student-dashboard" class="hidden flex-col h-[100dvh] w-full max-w-md mx-auto bg-black">
+    <!-- STUDENT HEADER -->
     <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
       <div class="flex items-center gap-2.5">
         <div class="tiktok-avatar rounded-full shrink-0">
@@ -85,8 +85,8 @@
     </div>
   </div>
 
-  <!-- 2. LECTURER INBOX & CHAT SCREEN (TIKTOK STYLE) -->
-  <div id="lecturer-dashboard" class="hidden fixed inset-0 flex-col h-[100dvh] w-full max-w-md mx-auto bg-black relative overflow-hidden">
+  <!-- 2. LECTURER INBOX & CHAT SCREEN -->
+  <div id="lecturer-dashboard" class="hidden flex-col h-[100dvh] w-full max-w-md mx-auto bg-black relative overflow-hidden">
     
     <!-- INBOX FEED PANEL -->
     <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
@@ -172,12 +172,14 @@
       userProfile = profile || { id: user.id, email: user.email, role: userRole };
 
       if (userRole === 'lecturer') {
-        document.getElementById('lecturer-dashboard').classList.remove('hidden');
-        document.getElementById('lecturer-dashboard').classList.add('flex');
+        const lectDash = document.getElementById('lecturer-dashboard');
+        lectDash.classList.remove('hidden');
+        lectDash.classList.add('flex');
         loadTikTokStudentFeed();
       } else {
-        document.getElementById('student-dashboard').classList.remove('hidden');
-        document.getElementById('student-dashboard').classList.add('flex');
+        const studDash = document.getElementById('student-dashboard');
+        studDash.classList.remove('hidden');
+        studDash.classList.add('flex');
         activeStudentId = user.id;
 
         const cleanUsername = (profile?.full_name || user.email.split('@')[0]);
@@ -237,7 +239,7 @@
 
     function formatMessageText(text) {
       if (!text) return '';
-      let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace font / text >/g, "&gt;");
+      let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
       return safeText.replace(/\n/g, '<br>');
@@ -299,7 +301,6 @@
       return { label, color };
     }
 
-    /* --- LECTURER INBOX FEED --- */
     async function loadTikTokStudentFeed() {
       const { data: students } = await supabaseClient.from('profiles').select('*').eq('role', 'student');
       const feedContainer = document.getElementById('tiktok-feed');
@@ -366,15 +367,17 @@
       speedBadge.innerText = speedData.label;
       speedBadge.className = `text-[10px] px-2.5 py-0.5 rounded-full font-bold ${speedData.color}`;
 
-      document.getElementById('lecturer-chat-panel').classList.remove('hidden');
-      document.getElementById('lecturer-chat-panel').classList.add('flex');
+      const lectChat = document.getElementById('lecturer-chat-panel');
+      lectChat.classList.remove('hidden');
+      lectChat.classList.add('flex');
 
       loadLecturerMessages();
     }
 
     function closeMobileChat() {
-      document.getElementById('lecturer-chat-panel').classList.add('hidden');
-      document.getElementById('lecturer-chat-panel').classList.remove('flex');
+      const lectChat = document.getElementById('lecturer-chat-panel');
+      lectChat.classList.add('hidden');
+      lectChat.classList.remove('flex');
       loadTikTokStudentFeed();
     }
 
@@ -410,7 +413,6 @@
       input.value = '';
     }
 
-    /* --- STUDENT ACTIONS --- */
     async function loadStudentMessages() {
       const { data: messages } = await supabaseClient
         .from('messages')
@@ -455,7 +457,6 @@
       input.value = '';
     }
 
-    /* --- MESSAGE RENDER logic --- */
     function renderMessages(messages, containerId) {
       const box = document.getElementById(containerId);
       box.innerHTML = '';
