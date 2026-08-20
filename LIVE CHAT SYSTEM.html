@@ -161,13 +161,27 @@
     let failedMessages = [];
     let deferredPrompt = null;
 
-    // CAPTURE PWA INSTALL PROMPT
+    // CAPTURE PWA INSTALL PROMPT FOR ANDROID
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
     });
 
+    // RECONFIGURED INSTALL LOGIC FOR IPHONE (CHROME + SAFARI)
     async function installPWA() {
+      const userAgent = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isChromeIOS = /CriOS/.test(userAgent);
+
+      if (isIOS) {
+        if (isChromeIOS) {
+          alert("🍎 iPhone Users (Chrome Detected):\n\nApple does NOT allow installing apps directly from Chrome.\n\nPlease follow these 3 quick steps:\n1. Copy this web address (URL).\n2. Open SAFARI on your iPhone.\n3. Paste the URL into Safari.\n4. Tap Share (⎋) → 'Add to Home Screen' (+).");
+        } else {
+          alert("🍎 iPhone Installation Steps (Safari):\n\n1. Tap the SHARE button (square with arrow pointing UP ⎋) at the bottom of your Safari browser.\n\n2. Scroll down the menu.\n\n3. Tap 'Add to Home Screen' (+).\n\n4. Tap 'Add' in the top-right corner.");
+        }
+        return;
+      }
+
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -175,7 +189,7 @@
           deferredPrompt = null;
         }
       } else {
-        alert("📲 To install on your phone:\n\n• Android (Chrome): Tap the 3 dots menu top-right → Select 'Add to Home Screen' or 'Install App'.\n\n• iPhone (Safari): Tap the Share button at the bottom → Select 'Add to Home Screen'.");
+        alert("📲 To install on your phone:\n\n• Android: Tap the 3 dots menu (top-right) → Select 'Add to Home Screen' or 'Install App'.\n\n• iPhone: Open this site in SAFARI → Tap Share (⎋) → 'Add to Home Screen'.");
       }
     }
 
