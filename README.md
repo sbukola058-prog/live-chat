@@ -1,10 +1,10 @@
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Classroom Chat</title>
-  
-  <!-- Prevent Mobile Browser Caching for Instant Updates -->
+  <title>Classroom Group Forum</title>
+
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -16,7 +16,7 @@
 
   <script>
     const manifest = {
-      "name": "Classroom Feed",
+      "name": "Classroom Forum",
       "short_name": "Classroom",
       "start_url": ".",
       "display": "standalone",
@@ -34,10 +34,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { touch-action: manipulation; background-color: #000000; color: #ffffff; }
-    .tiktok-avatar {
-      background: linear-gradient(45deg, #FE2C55, #25F4EE);
-      padding: 1.5px;
-    }
+    .avatar-lecturer { background: linear-gradient(45deg, #FFD700, #FF8C00); padding: 2px; }
+    .avatar-student { background: linear-gradient(45deg, #FE2C55, #25F4EE); padding: 1.5px; }
   </style>
 </head>
 <body class="fixed inset-0 w-full h-full font-sans bg-black text-white overflow-hidden">
@@ -46,101 +44,59 @@
   <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black">
     <div class="w-full max-w-sm p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM</h1>
-        <p class="text-xs text-zinc-400 mt-1">Sign in to your portal</p>
+        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM FORUM</h1>
+        <p class="text-xs text-zinc-400 mt-1">Live Interactive Group Class</p>
       </div>
 
-      <!-- INLINE ERROR MESSAGE DISPLAY -->
       <div id="login-error" class="hidden mb-4 p-3 bg-red-950/80 border border-red-500/80 text-red-300 text-xs rounded-2xl text-center font-semibold"></div>
 
       <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
       <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
-      <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
+      <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Enter Classroom</button>
       
-      <!-- MANUAL PWA INSTALL BUTTON -->
       <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-zinc-800 border border-cyan-500/50 text-cyan-400 p-3 rounded-2xl font-bold text-xs hover:bg-zinc-800/80 active:scale-95 transition flex items-center justify-center gap-2">
         📲 Install App on Phone
       </button>
     </div>
   </div>
 
-  <!-- 1. STUDENT VIEW -->
-  <div id="student-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
+  <!-- UNIFIED GROUP CLASSROOM DASHBOARD -->
+  <div id="group-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
     <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
       <div class="flex items-center gap-2.5">
-        <div class="tiktok-avatar rounded-full shrink-0">
-          <div id="student-avatar-display" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">ST</div>
+        <div id="user-avatar-wrapper" class="avatar-student rounded-full shrink-0">
+          <div id="user-avatar-display" class="w-9 h-9 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
         </div>
-        <div>
-          <h2 id="student-username-display" class="font-bold text-sm text-white">@student</h2>
-          <span id="student-speed-badge" class="text-[9px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full font-bold">⚡ Calc...</span>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-1.5">
+            <h2 id="user-handle-display" class="font-bold text-sm text-white truncate">@username</h2>
+            <span id="user-role-badge" class="text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">STUDENT</span>
+          </div>
+          <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Group Class Live
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button id="student-install-btn" onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-2.5 py-1 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
-        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
+        <button onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-2.5 py-1.5 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
     </div>
 
-    <div id="student-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-black"></div>
+    <!-- MAIN LIVE CHAT STREAM -->
+    <div id="group-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3.5 bg-black"></div>
 
+    <!-- INPUT BAR -->
     <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
       <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
         <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
           📎
-          <input type="file" id="student-file-input" class="hidden" onchange="handleFileSelect(this, 'student-file-name')">
+          <input type="file" id="group-file-input" class="hidden" onchange="handleFileSelect(this)">
         </label>
-        <textarea id="student-message-input" rows="1" placeholder="Message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'student')"></textarea>
-        <button onclick="sendStudentMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0">Send</button>
+        <textarea id="group-message-input" rows="1" placeholder="Type message to class..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event)"></textarea>
+        <button onclick="sendGroupMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0 hover:opacity-80">Send</button>
       </div>
-      <div id="student-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
-    </div>
-  </div>
-
-  <!-- 2. LECTURER INBOX & CHAT SCREEN -->
-  <div id="lecturer-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40 overflow-hidden">
-    <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
-      <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
-        <div>
-          <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="lecturer-install-btn" onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/40 font-semibold">📲 Install App</button>
-          <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
-        </div>
-      </div>
-      <div id="tiktok-feed" class="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-900/50"></div>
-    </div>
-
-    <div id="lecturer-chat-panel" class="hidden flex-col h-full w-full bg-black fixed inset-0 z-50 max-w-md mx-auto">
-      <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
-        <div class="flex items-center gap-3">
-          <button onclick="closeMobileChat()" class="text-xl text-zinc-300 px-1 font-bold">←</button>
-          <div class="tiktok-avatar rounded-full shrink-0">
-            <div id="chat-header-avatar" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">ST</div>
-          </div>
-          <div>
-            <h2 id="chat-header-username" class="font-bold text-sm text-white">@student</h2>
-            <p class="text-[10px] text-zinc-400">Direct Chat</p>
-          </div>
-        </div>
-        <span id="chat-header-speed" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-zinc-800 text-zinc-300">⚡ Calc...</span>
-      </div>
-
-      <div id="lecturer-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-black"></div>
-
-      <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
-        <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
-          <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
-            📎
-            <input type="file" id="lecturer-file-input" class="hidden" onchange="handleFileSelect(this, 'lecturer-file-name')">
-          </label>
-          <textarea id="lecturer-message-input" rows="1" placeholder="Message..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event, 'lecturer')"></textarea>
-          <button onclick="sendLecturerMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0">Send</button>
-        </div>
-        <div id="lecturer-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
-      </div>
+      <div id="group-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
     </div>
   </div>
 
@@ -150,24 +106,16 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
-
     let currentUser = null;
     let userProfile = null;
-    let activeStudentId = null;
-
-    let replyCountdownInterval = null;
-    let replyTimeLeft = 120; // 2-minute reply window
-
-    let failedMessages = [];
+    let renderedMessageIds = new Set();
     let deferredPrompt = null;
 
-    // CAPTURE PWA INSTALL PROMPT FOR ANDROID
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
     });
 
-    // RECONFIGURED INSTALL LOGIC FOR IPHONE (CHROME + SAFARI)
     async function installPWA() {
       const userAgent = navigator.userAgent || '';
       const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -175,9 +123,9 @@
 
       if (isIOS) {
         if (isChromeIOS) {
-          alert("🍎 iPhone Users (Chrome Detected):\n\nApple does NOT allow installing apps directly from Chrome.\n\nPlease follow these 3 quick steps:\n1. Copy this web address (URL).\n2. Open SAFARI on your iPhone.\n3. Paste the URL into Safari.\n4. Tap Share (⎋) → 'Add to Home Screen' (+).");
+          alert("🍎 iPhone Users (Chrome Detected):\n\n1. Copy this website URL.\n2. Open Safari on your iPhone.\n3. Paste the URL into Safari.\n4. Tap Share (⎋) → 'Add to Home Screen' (+).");
         } else {
-          alert("🍎 iPhone Installation Steps (Safari):\n\n1. Tap the SHARE button (square with arrow pointing UP ⎋) at the bottom of your Safari browser.\n\n2. Scroll down the menu.\n\n3. Tap 'Add to Home Screen' (+).\n\n4. Tap 'Add' in the top-right corner.");
+          alert("🍎 iPhone Installation Steps (Safari):\n\n1. Tap the Share button (⎋) at the bottom.\n2. Scroll down and tap 'Add to Home Screen' (+).\n3. Tap 'Add' in top-right.");
         }
         return;
       }
@@ -185,30 +133,23 @@
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          deferredPrompt = null;
-        }
+        if (outcome === 'accepted') deferredPrompt = null;
       } else {
-        alert("📲 To install on your phone:\n\n• Android: Tap the 3 dots menu (top-right) → Select 'Add to Home Screen' or 'Install App'.\n\n• iPhone: Open this site in SAFARI → Tap Share (⎋) → 'Add to Home Screen'.");
+        alert("📲 To install on your phone:\n\n• Android: Tap 3 dots menu → 'Add to Home Screen'.\n• iPhone: Open in Safari → Tap Share (⎋) → 'Add to Home Screen'.");
       }
     }
 
     function updateActivityTimestamp() {
-      if (currentUser) {
-        localStorage.setItem('classroom_last_activity', Date.now().toString());
-      }
+      if (currentUser) localStorage.setItem('classroom_last_activity', Date.now().toString());
     }
-
-    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(evt => {
-      window.addEventListener(evt, updateActivityTimestamp, { passive: true });
-    });
+    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(evt => window.addEventListener(evt, updateActivityTimestamp, { passive: true }));
 
     window.onload = async () => {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         const lastAct = parseInt(localStorage.getItem('classroom_last_activity') || '0');
         if (lastAct > 0 && (Date.now() - lastAct) >= SESSION_TIMEOUT_MS) {
-          showLoginError("⏰ Session expired after 20 minutes of inactivity.");
+          showLoginError("⏰ Session expired due to inactivity.");
           logout();
           return;
         }
@@ -225,31 +166,21 @@
     }
 
     async function login() {
-      const errDiv = document.getElementById('login-error');
-      errDiv.classList.add('hidden');
-
+      showLoginError("");
       let email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      if (!email || !password) {
-        showLoginError("Please enter both username and password");
-        return;
-      }
-
+      if (!email || !password) return showLoginError("Please enter username and password");
       if (!email.includes('@')) email = `${email}@livechat.local`;
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        showLoginError("Login failed: " + error.message);
-        return;
-      }
+      if (error) return showLoginError("Login failed: " + error.message);
 
       updateActivityTimestamp();
       handleUserSession(data.user);
     }
 
     async function logout() {
-      clearInterval(replyCountdownInterval);
       localStorage.removeItem('classroom_last_activity');
       await supabaseClient.auth.signOut();
       location.reload();
@@ -261,65 +192,43 @@
 
       let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
       const userRole = profile?.role ? profile.role.toLowerCase() : 'student';
-      userProfile = profile || { id: user.id, email: user.email, role: userRole };
+      const rawName = (profile?.full_name || user.email.split('@')[0]);
 
-      updateActivityTimestamp();
+      userProfile = { id: user.id, email: user.email, role: userRole, name: rawName };
+
+      document.getElementById('user-handle-display').innerText = `@${rawName}`;
+      document.getElementById('user-avatar-display').innerText = rawName.substring(0, 2).toUpperCase();
+
+      const badge = document.getElementById('user-role-badge');
+      const wrapper = document.getElementById('user-avatar-wrapper');
 
       if (userRole === 'lecturer') {
-        const lectDash = document.getElementById('lecturer-dashboard');
-        lectDash.classList.remove('hidden');
-        lectDash.classList.add('flex');
-        loadTikTokStudentFeed();
+        badge.innerText = "🎓 LECTURER";
+        badge.className = "text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/40";
+        wrapper.className = "avatar-lecturer rounded-full shrink-0";
       } else {
-        const studDash = document.getElementById('student-dashboard');
-        studDash.classList.remove('hidden');
-        studDash.classList.add('flex');
-        activeStudentId = user.id;
-
-        const cleanUsername = (profile?.full_name || user.email.split('@')[0]);
-        document.getElementById('student-username-display').innerText = `@${cleanUsername}`;
-        document.getElementById('student-avatar-display').innerText = cleanUsername.substring(0, 2);
-
-        startReplyTimer();
-        loadStudentMessages();
+        badge.innerText = "⚡ STUDENT";
+        badge.className = "text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/40";
+        wrapper.className = "avatar-student rounded-full shrink-0";
       }
-      subscribeToMessages();
+
+      const dash = document.getElementById('group-dashboard');
+      dash.classList.remove('hidden');
+      dash.classList.add('flex');
+
+      loadAllGroupMessages();
+      subscribeToRealtimeGroupChat();
     }
 
-    function startReplyTimer() {
-      clearInterval(replyCountdownInterval);
-      replyTimeLeft = 120;
-      updateReplyTimerUI();
-
-      replyCountdownInterval = setInterval(() => {
-        replyTimeLeft--;
-        updateReplyTimerUI();
-
-        if (replyTimeLeft <= 0) {
-          clearInterval(replyCountdownInterval);
-          logout();
-        }
-      }, 1000);
-    }
-
-    function updateReplyTimerUI() {
-      const minutes = Math.floor(replyTimeLeft / 60);
-      const seconds = replyTimeLeft % 60;
-      const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      const badge = document.getElementById('student-timer-badge');
-      if (badge) badge.innerText = `⏱️ ${formatted}`;
-    }
-
-    function handleKeyInput(event, role) {
+    function handleKeyInput(event) {
       if ((event.key === 'Enter' || event.keyCode === 13) && !event.shiftKey) {
         event.preventDefault();
-        if (role === 'student') sendStudentMessage();
-        else sendLecturerMessage();
+        sendGroupMessage();
       }
     }
 
-    function handleFileSelect(input, labelId) {
-      const label = document.getElementById(labelId);
+    function handleFileSelect(input) {
+      const label = document.getElementById('group-file-name');
       if (input.files.length > 0) {
         const file = input.files[0];
         if (file.size > 50 * 1024 * 1024) {
@@ -335,8 +244,8 @@
       }
     }
 
-    async function uploadAttachment(fileInputId) {
-      const fileInput = document.getElementById(fileInputId);
+    async function uploadAttachment() {
+      const fileInput = document.getElementById('group-file-input');
       if (!fileInput.files || fileInput.files.length === 0) return null;
 
       const file = fileInput.files[0];
@@ -352,7 +261,8 @@
 
       const { data: publicUrlData } = supabaseClient.storage.from('chat-attachments').getPublicUrl(filePath);
       fileInput.value = '';
-      return { url: publicUrlData.publicUrl, name: file.name };
+      document.getElementById('group-file-name').classList.add('hidden');
+      return publicUrlData.publicUrl;
     }
 
     function formatMessageText(text) {
@@ -363,302 +273,134 @@
       return safeText.replace(/\n/g, '<br>');
     }
 
-    function calculateAvgResponseSpeed(messages, studentId) {
-      let totalSpeedSec = 0;
-      let count = 0;
+    // INSTANT OPTIMISTIC SENDER FUNCTION
+    async function sendGroupMessage() {
+      const input = document.getElementById('group-message-input');
+      let content = input.value.trim();
+      input.value = '';
 
-      for (let i = 0; i < messages.length - 1; i++) {
-        const currentMsg = messages[i];
-        const nextMsg = messages[i + 1];
-
-        if (currentMsg.sender_id !== studentId && nextMsg.sender_id === studentId) {
-          const lecturerTime = new Date(currentMsg.created_at).getTime();
-          const studentTime = new Date(nextMsg.created_at).getTime();
-          const diffSec = (studentTime - lecturerTime) / 1000;
-
-          if (diffSec >= 0) {
-            totalSpeedSec += diffSec;
-            count++;
-          }
-        }
-      }
-
-      if (count === 0) return { label: "No Replies Yet", color: "bg-zinc-800 text-zinc-400" };
-
-      const avgSec = Math.round(totalSpeedSec / count);
-      let label = `${avgSec}s avg`;
-      let color = "bg-emerald-500 text-white";
-
-      if (avgSec > 60) color = "bg-red-500 text-white";
-      else if (avgSec > 30) color = "bg-amber-500 text-white";
-
-      return { label, color };
-    }
-
-    async function loadTikTokStudentFeed() {
-      const { data: students } = await supabaseClient.from('profiles').select('*').eq('role', 'student');
-      const feedContainer = document.getElementById('tiktok-feed');
-      feedContainer.innerHTML = '';
-
-      if (!students || students.length === 0) {
-        feedContainer.innerHTML = '<p class="text-xs text-zinc-500 p-4 text-center">No student messages yet.</p>';
-        return;
-      }
-
-      const studentFeedData = await Promise.all(students.map(async (student) => {
-        const { data: msgs } = await supabaseClient
-          .from('messages')
-          .select('*')
-          .eq('student_id', student.id)
-          .order('created_at', { ascending: false });
-
-        const latestMsg = msgs && msgs.length > 0 ? msgs[0] : null;
-        const speedData = calculateAvgResponseSpeed(msgs ? msgs.reverse() : [], student.id);
-
-        return {
-          student,
-          previewText: latestMsg ? latestMsg.content : "Say hi to start dynamic conversation",
-          lastTimestamp: latestMsg ? new Date(latestMsg.created_at).getTime() : 0,
-          speedData
-        };
-      }));
-
-      studentFeedData.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
-
-      studentFeedData.forEach(({ student, previewText, speedData }) => {
-        const studentName = student.full_name || student.email.split('@')[0];
-
-        const card = document.createElement('div');
-        card.className = 'flex items-center justify-between p-3.5 hover:bg-zinc-900/80 cursor-pointer transition active:bg-zinc-900';
-        card.onclick = () => openStudentChat(student, speedData);
-
-        card.innerHTML = `
-          <div class="flex items-center gap-3 overflow-hidden">
-            <div class="tiktok-avatar rounded-full shrink-0">
-              <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase border border-zinc-800">
-                ${studentName.substring(0, 2)}
-              </div>
-            </div>
-            <div class="overflow-hidden">
-              <h3 class="font-bold text-sm text-white truncate">@${studentName}</h3>
-              <p class="text-xs text-zinc-400 truncate mt-0.5">${previewText}</p>
-            </div>
-          </div>
-          <span class="text-[10px] px-2.5 py-1 rounded-full font-bold ${speedData.color} shrink-0 ml-2">${speedData.label}</span>
-        `;
-        feedContainer.appendChild(card);
-      });
-    }
-
-    function openStudentChat(student, speedData) {
-      activeStudentId = student.id;
-      const studentName = student.full_name || student.email.split('@')[0];
-
-      document.getElementById('chat-header-username').innerText = `@${studentName}`;
-      document.getElementById('chat-header-avatar').innerText = studentName.substring(0, 2);
-
-      const speedBadge = document.getElementById('chat-header-speed');
-      speedBadge.innerText = speedData.label;
-      speedBadge.className = `text-[10px] px-2.5 py-0.5 rounded-full font-bold ${speedData.color}`;
-
-      const lectChat = document.getElementById('lecturer-chat-panel');
-      lectChat.classList.remove('hidden');
-      lectChat.classList.add('flex');
-
-      loadLecturerMessages();
-    }
-
-    function closeMobileChat() {
-      const lectChat = document.getElementById('lecturer-chat-panel');
-      lectChat.classList.add('hidden');
-      lectChat.classList.remove('flex');
-      loadTikTokStudentFeed();
-    }
-
-    async function loadLecturerMessages() {
-      if (!activeStudentId) return;
-      const { data: messages } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .eq('student_id', activeStudentId)
-        .order('created_at', { ascending: true });
-
-      renderMessages(messages || [], 'lecturer-messages-box', activeStudentId);
-    }
-
-    async function sendLecturerMessage(retryContent = null, failedId = null) {
-      const input = document.getElementById('lecturer-message-input');
-      let content = retryContent || input.value.trim();
-      
-      if (!retryContent) {
-        const fileData = await uploadAttachment('lecturer-file-input');
-        if (fileData) {
-          content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
-          document.getElementById('lecturer-file-name').classList.add('hidden');
-        }
-        input.value = '';
-      }
-
-      if (!content || !activeStudentId) return;
-
-      updateActivityTimestamp();
-
-      const { error } = await supabaseClient.from('messages').insert({
-        student_id: activeStudentId,
-        sender_id: currentUser.id,
-        content: content
-      });
-
-      if (error) {
-        if (!failedId) {
-          failedMessages.push({ id: Date.now(), content, targetStudentId: activeStudentId, senderRole: 'lecturer' });
-        }
-      } else {
-        if (failedId) {
-          failedMessages = failedMessages.filter(m => m.id !== failedId);
-        }
-      }
-
-      loadLecturerMessages();
-    }
-
-    async function loadStudentMessages() {
-      const { data: messages } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .eq('student_id', currentUser.id)
-        .order('created_at', { ascending: true });
-
-      const speedData = calculateAvgResponseSpeed(messages || [], currentUser.id);
-      const badge = document.getElementById('student-speed-badge');
-      if (badge) {
-        badge.innerText = speedData.label;
-        badge.className = `text-[9px] px-2 py-0.5 rounded-full font-bold ${speedData.color}`;
-      }
-
-      renderMessages(messages || [], 'student-messages-box', currentUser.id);
-    }
-
-    async function sendStudentMessage(retryContent = null, failedId = null) {
-      const input = document.getElementById('student-message-input');
-      let content = retryContent || input.value.trim();
-
-      if (!retryContent) {
-        const fileData = await uploadAttachment('student-file-input');
-        if (fileData) {
-          content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
-          document.getElementById('student-file-name').classList.add('hidden');
-        }
-        input.value = '';
-      }
+      const fileUrl = await uploadAttachment();
+      if (fileUrl) content = content ? `${content}\n\n📎 Attachment: ${fileUrl}` : `📎 Attachment: ${fileUrl}`;
 
       if (!content) return;
-
-      if (content.length >= 10) {
-        startReplyTimer();
-      }
-
       updateActivityTimestamp();
 
-      const { error } = await supabaseClient.from('messages').insert({
+      const tempId = `temp_${Date.now()}`;
+      const optimisticMsg = {
+        id: tempId,
+        sender_id: currentUser.id,
+        sender_name: userProfile.name,
+        sender_role: userProfile.role,
+        content: content,
+        created_at: new Date().toISOString(),
+        isOptimistic: true
+      };
+
+      appendSingleMessage(optimisticMsg);
+
+      const { data, error } = await supabaseClient.from('messages').insert({
         student_id: currentUser.id,
         sender_id: currentUser.id,
+        sender_name: userProfile.name,
+        sender_role: userProfile.role,
         content: content
-      });
+      }).select().single();
 
       if (error) {
-        if (!failedId) {
-          failedMessages.push({ id: Date.now(), content, targetStudentId: currentUser.id, senderRole: 'student' });
-        }
-      } else {
-        if (failedId) {
-          failedMessages = failedMessages.filter(m => m.id !== failedId);
-        }
+        const tempElement = document.getElementById(`msg-${tempId}`);
+        if (tempElement) tempElement.classList.add('opacity-50', 'border-red-500');
+      } else if (data) {
+        const tempElement = document.getElementById(`msg-${tempId}`);
+        if (tempElement) tempElement.id = `msg-${data.id}`;
+        renderedMessageIds.delete(tempId);
+        renderedMessageIds.add(data.id);
       }
-
-      loadStudentMessages();
     }
 
-    function renderMessages(messages, containerId, studentContextId) {
-      const box = document.getElementById(containerId);
+    async function loadAllGroupMessages() {
+      const { data: messages } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      const box = document.getElementById('group-messages-box');
       box.innerHTML = '';
+      renderedMessageIds.clear();
 
-      messages.forEach(msg => {
-        if (msg.deleted_by && msg.deleted_by.includes(currentUser.id)) return;
+      if (messages) messages.forEach(msg => appendSingleMessage(msg));
+    }
 
-        const isMe = msg.sender_id === currentUser.id;
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+    function appendSingleMessage(msg) {
+      if (renderedMessageIds.has(msg.id)) return;
+      renderedMessageIds.add(msg.id);
 
-        let contentText = msg.deleted_for_everyone 
-          ? '<i class="opacity-60">This message was deleted</i>' 
-          : formatMessageText(msg.content);
+      const box = document.getElementById('group-messages-box');
+      const isMe = msg.sender_id === currentUser.id;
+      const isLecturer = (msg.sender_role || '').toLowerCase() === 'lecturer';
 
-        const bgStyle = isMe ? 'bg-gradient-to-r from-cyan-500 to-pink-500 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-700/50';
+      const msgDiv = document.createElement('div');
+      msgDiv.id = `msg-${msg.id}`;
+      msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
 
-        msgDiv.innerHTML = `
-          <div class="max-w-[80%] p-3 rounded-2xl text-xs relative group ${bgStyle}">
-            <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
-            ${!msg.deleted_for_everyone ? `
-              <div class="hidden group-hover:flex gap-2 mt-1 text-[9px] opacity-80 border-t border-white/20 pt-1">
-                <button onclick="deleteMessage('${msg.id}', 'me')" class="underline hover:text-red-300">Delete for me</button>
-                <button onclick="deleteMessage('${msg.id}', 'everyone')" class="underline hover:text-red-300">Delete for everyone</button>
-              </div>
+      const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const displayName = msg.sender_name || (isLecturer ? 'Lecturer' : 'Student');
+
+      let senderHeader = '';
+      if (!isMe) {
+        const roleTag = isLecturer 
+          ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
+          : '<span class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
+
+        senderHeader = `
+          <div class="flex items-center gap-1.5 mb-1 px-1">
+            <span class="text-[11px] font-bold text-zinc-300">@${displayName}</span>
+            ${roleTag}
+          </div>
+        `;
+      }
+
+      let contentText = msg.deleted_for_everyone 
+        ? '<i class="opacity-60">This message was deleted</i>' 
+        : formatMessageText(msg.content);
+
+      let bubbleBg = 'bg-zinc-800 text-zinc-100 border border-zinc-700/50';
+      if (isMe) bubbleBg = 'bg-gradient-to-r from-cyan-600 to-pink-600 text-white';
+      else if (isLecturer) bubbleBg = 'bg-zinc-900 border border-amber-500/50 text-amber-100';
+
+      msgDiv.innerHTML = `
+        ${senderHeader}
+        <div class="max-w-[85%] p-3 rounded-2xl text-xs relative group ${bubbleBg} shadow-sm">
+          <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
+          <div class="flex items-center justify-end gap-2 mt-1 text-[9px] opacity-60">
+            <span>${timeStr}</span>
+            ${(isMe && !msg.deleted_for_everyone) ? `
+              <button onclick="deleteMessage('${msg.id}')" class="hidden group-hover:inline underline text-red-300 hover:text-red-200 ml-1">Delete</button>
             ` : ''}
           </div>
-        `;
-        box.appendChild(msgDiv);
-      });
+        </div>
+      `;
 
-      const currentFailed = failedMessages.filter(m => m.targetStudentId === studentContextId);
-      currentFailed.forEach(failed => {
-        const failedDiv = document.createElement('div');
-        failedDiv.className = 'flex flex-col items-end my-1';
-        
-        const isLecturer = userProfile.role === 'lecturer';
-        const retryFn = isLecturer 
-          ? `sendLecturerMessage('${failed.content.replace(/'/g, "\\'")}', ${failed.id})`
-          : `sendStudentMessage('${failed.content.replace(/'/g, "\\'")}', ${failed.id})`;
-
-        failedDiv.innerHTML = `
-          <div class="max-w-[85%] p-3 rounded-2xl text-xs bg-red-950/80 border border-red-500/80 text-white flex flex-col gap-2">
-            <p class="whitespace-pre-wrap leading-relaxed opacity-90">${formatMessageText(failed.content)}</p>
-            <div class="flex items-center justify-between border-t border-red-500/40 pt-2 mt-1">
-              <span class="text-[10px] text-red-300 font-semibold">⚠️ Failed to send</span>
-              <button onclick="${retryFn}" class="bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-[10px] px-2.5 py-1 rounded-full transition shadow">
-                🔄 Tap to Resend
-              </button>
-            </div>
-          </div>
-        `;
-        box.appendChild(failedDiv);
-      });
-
+      box.appendChild(msgDiv);
       box.scrollTop = box.scrollHeight;
     }
 
-    async function deleteMessage(msgId, mode) {
-      if (mode === 'everyone') {
-        await supabaseClient.from('messages').update({ deleted_for_everyone: true }).eq('id', msgId);
-      } else if (mode === 'me') {
-        const { data: msg } = await supabaseClient.from('messages').select('deleted_by').eq('id', msgId).single();
-        const updatedDeletedBy = [...(msg.deleted_by || []), currentUser.id];
-        await supabaseClient.from('messages').update({ deleted_by: updatedDeletedBy }).eq('id', msgId);
-      }
-
-      if (userProfile.role === 'lecturer') loadLecturerMessages();
-      else loadStudentMessages();
+    async function deleteMessage(msgId) {
+      await supabaseClient.from('messages').update({ deleted_for_everyone: true }).eq('id', msgId);
+      const msgText = document.querySelector(`#msg-${msgId} p`);
+      if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
     }
 
-    function subscribeToMessages() {
+    function subscribeToRealtimeGroupChat() {
       supabaseClient
-        .channel('messages_realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
-          if (userProfile.role === 'lecturer') {
-            loadTikTokStudentFeed();
-            loadLecturerMessages();
-          } else {
-            loadStudentMessages();
+        .channel('public_group_chat')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          appendSingleMessage(payload.new);
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+          if (payload.new.deleted_for_everyone) {
+            const msgText = document.querySelector(`#msg-${payload.new.id} p`);
+            if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
           }
         })
         .subscribe();
