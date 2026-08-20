@@ -36,21 +36,23 @@
     }
   </style>
 </head>
-<body class="h-[100dvh] w-screen font-sans overflow-hidden select-none bg-black text-white">
+<body class="fixed inset-0 w-full h-full font-sans bg-black text-white overflow-hidden">
 
   <!-- AUTH SCREEN -->
-  <div id="auth-container" class="max-w-sm mx-auto mt-16 p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
-    <div class="text-center mb-6">
-      <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM</h1>
-      <p class="text-xs text-zinc-400 mt-1">Sign in to your portal</p>
+  <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black">
+    <div class="w-full max-w-sm p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM</h1>
+        <p class="text-xs text-zinc-400 mt-1">Sign in to your portal</p>
+      </div>
+      <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
+      <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
     </div>
-    <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
-    <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
-    <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
   </div>
 
   <!-- 1. STUDENT VIEW -->
-  <div id="student-dashboard" class="hidden flex-col h-[100dvh] w-full max-w-md mx-auto bg-black">
+  <div id="student-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
     <!-- STUDENT HEADER -->
     <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
       <div class="flex items-center gap-2.5">
@@ -69,7 +71,7 @@
     </div>
 
     <!-- STUDENT MESSAGES CONTAINER -->
-    <div id="student-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
+    <div id="student-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
     <!-- STUDENT INPUT BAR -->
     <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
@@ -86,7 +88,7 @@
   </div>
 
   <!-- 2. LECTURER INBOX & CHAT SCREEN -->
-  <div id="lecturer-dashboard" class="hidden flex-col h-[100dvh] w-full max-w-md mx-auto bg-black relative overflow-hidden">
+  <div id="lecturer-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40 overflow-hidden">
     
     <!-- INBOX FEED PANEL -->
     <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
@@ -94,7 +96,7 @@
         <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
       </div>
-      <div id="tiktok-feed" class="flex-1 overflow-y-auto divide-y divide-zinc-900/50"></div>
+      <div id="tiktok-feed" class="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-900/50"></div>
     </div>
 
     <!-- DIRECT CHAT PANEL -->
@@ -113,7 +115,7 @@
         <span id="chat-header-speed" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-zinc-800 text-zinc-300">⚡ Calc...</span>
       </div>
 
-      <div id="lecturer-messages-box" class="flex-1 p-4 overflow-y-auto space-y-3 bg-black"></div>
+      <div id="lecturer-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
       <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
         <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
