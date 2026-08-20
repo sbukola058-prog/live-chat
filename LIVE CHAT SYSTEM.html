@@ -1,4 +1,413 @@
+
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Classroom Group Forum</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3048/3048122.png">
+
+  <script>
+    const manifest = {
+      "name": "Classroom Forum",
+      "short_name": "Classroom",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#000000",
+      "theme_color": "#000000",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3048/3048122.png", "sizes": "512x512", "type": "image/png" }]
+    };
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'}));
+    document.head.appendChild(link);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { touch-action: manipulation; background-color: #000000; color: #ffffff; }
+    .avatar-lecturer { background: linear-gradient(45deg, #FFD700, #FF8C00); padding: 2px; }
+    .avatar-student { background: linear-gradient(45deg, #FE2C55, #25F4EE); padding: 1.5px; }
+  </style>
+</head>
+<body class="fixed inset-0 w-full h-full font-sans bg-black text-white overflow-hidden">
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black">
+    <div class="w-full max-w-sm p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">CLASSROOM FORUM</h1>
+        <p class="text-xs text-zinc-400 mt-1">Live Interactive Group Class</p>
+      </div>
+
+      <div id="login-error" class="hidden mb-4 p-3 bg-red-950/80 border border-red-500/80 text-red-300 text-xs rounded-2xl text-center font-semibold"></div>
+
+      <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
+      <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Enter Classroom</button>
+      
+      <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-zinc-800 border border-cyan-500/50 text-cyan-400 p-3 rounded-2xl font-bold text-xs hover:bg-zinc-800/80 active:scale-95 transition flex items-center justify-center gap-2">
+        📲 Install App on Phone
+      </button>
+    </div>
+  </div>
+
+  <!-- UNIFIED GROUP CLASSROOM DASHBOARD -->
+  <div id="group-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
+    <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div id="user-avatar-wrapper" class="avatar-student rounded-full shrink-0">
+          <div id="user-avatar-display" class="w-9 h-9 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
+        </div>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-1.5">
+            <h2 id="user-handle-display" class="font-bold text-sm text-white truncate">@username</h2>
+            <span id="user-role-badge" class="text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">STUDENT</span>
+          </div>
+          <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Group Class Live
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-2.5 py-1.5 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
+        <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
+      </div>
+    </div>
+
+    <!-- MAIN LIVE CHAT STREAM -->
+    <div id="group-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3.5 bg-black"></div>
+
+    <!-- INPUT BAR -->
+    <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
+      <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
+        <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
+          📎
+          <input type="file" id="group-file-input" class="hidden" onchange="handleFileSelect(this)">
+        </label>
+        <textarea id="group-message-input" rows="1" placeholder="Type message to class..." class="flex-1 bg-transparent text-white focus:outline-none resize-none max-h-20 text-sm px-1 py-1" onkeydown="handleKeyInput(event)"></textarea>
+        <button onclick="sendGroupMessage()" class="text-pink-500 font-bold text-sm px-2 shrink-0 hover:opacity-80">Send</button>
+      </div>
+      <div id="group-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://qkwlasexypebdvkbhgmd.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_lrONtIn4ve7PZvCWtNkuvg_KGwDlwvO";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
+    let currentUser = null;
+    let userProfile = null;
+    let renderedMessageIds = new Set();
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function installPWA() {
+      const userAgent = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isChromeIOS = /CriOS/.test(userAgent);
+
+      if (isIOS) {
+        if (isChromeIOS) {
+          alert("🍎 iPhone Users (Chrome Detected):\n\n1. Copy this website URL.\n2. Open Safari on your iPhone.\n3. Paste the URL into Safari.\n4. Tap Share (⎋) → 'Add to Home Screen' (+).");
+        } else {
+          alert("🍎 iPhone Installation Steps (Safari):\n\n1. Tap the Share button (⎋) at the bottom.\n2. Scroll down and tap 'Add to Home Screen' (+).\n3. Tap 'Add' in top-right.");
+        }
+        return;
+      }
+
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') deferredPrompt = null;
+      } else {
+        alert("📲 To install on your phone:\n\n• Android: Tap 3 dots menu → 'Add to Home Screen'.\n• iPhone: Open in Safari → Tap Share (⎋) → 'Add to Home Screen'.");
+      }
+    }
+
+    function updateActivityTimestamp() {
+      if (currentUser) localStorage.setItem('classroom_last_activity', Date.now().toString());
+    }
+    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(evt => window.addEventListener(evt, updateActivityTimestamp, { passive: true }));
+
+    window.onload = async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        const lastAct = parseInt(localStorage.getItem('classroom_last_activity') || '0');
+        if (lastAct > 0 && (Date.now() - lastAct) >= SESSION_TIMEOUT_MS) {
+          showLoginError("⏰ Session expired due to inactivity.");
+          logout();
+          return;
+        }
+        handleUserSession(session.user);
+      }
+    };
+
+    function showLoginError(msg) {
+      const errDiv = document.getElementById('login-error');
+      if (errDiv) {
+        errDiv.innerText = msg;
+        errDiv.classList.remove('hidden');
+      }
+    }
+
+    async function login() {
+      showLoginError("");
+      let email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) return showLoginError("Please enter username and password");
+      if (!email.includes('@')) email = `${email}@livechat.local`;
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) return showLoginError("Login failed: " + error.message);
+
+      updateActivityTimestamp();
+      handleUserSession(data.user);
+    }
+
+    async function logout() {
+      localStorage.removeItem('classroom_last_activity');
+      await supabaseClient.auth.signOut();
+      location.reload();
+    }
+
+    async function handleUserSession(user) {
+      currentUser = user;
+      document.getElementById('auth-container').classList.add('hidden');
+
+      let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const userRole = profile?.role ? profile.role.toLowerCase() : 'student';
+      const rawName = (profile?.full_name || user.email.split('@')[0]);
+
+      userProfile = { id: user.id, email: user.email, role: userRole, name: rawName };
+
+      document.getElementById('user-handle-display').innerText = `@${rawName}`;
+      document.getElementById('user-avatar-display').innerText = rawName.substring(0, 2).toUpperCase();
+
+      const badge = document.getElementById('user-role-badge');
+      const wrapper = document.getElementById('user-avatar-wrapper');
+
+      if (userRole === 'lecturer') {
+        badge.innerText = "🎓 LECTURER";
+        badge.className = "text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/40";
+        wrapper.className = "avatar-lecturer rounded-full shrink-0";
+      } else {
+        badge.innerText = "⚡ STUDENT";
+        badge.className = "text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/40";
+        wrapper.className = "avatar-student rounded-full shrink-0";
+      }
+
+      const dash = document.getElementById('group-dashboard');
+      dash.classList.remove('hidden');
+      dash.classList.add('flex');
+
+      loadAllGroupMessages();
+      subscribeToRealtimeGroupChat();
+    }
+
+    function handleKeyInput(event) {
+      if ((event.key === 'Enter' || event.keyCode === 13) && !event.shiftKey) {
+        event.preventDefault();
+        sendGroupMessage();
+      }
+    }
+
+    function handleFileSelect(input) {
+      const label = document.getElementById('group-file-name');
+      if (input.files.length > 0) {
+        const file = input.files[0];
+        if (file.size > 50 * 1024 * 1024) {
+          alert("File exceeds 50MB limit!");
+          input.value = '';
+          label.classList.add('hidden');
+          return;
+        }
+        label.innerText = `📎 Attached: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`;
+        label.classList.remove('hidden');
+      } else {
+        label.classList.add('hidden');
+      }
+    }
+
+    async function uploadAttachment() {
+      const fileInput = document.getElementById('group-file-input');
+      if (!fileInput.files || fileInput.files.length === 0) return null;
+
+      const file = fileInput.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `${currentUser.id}/${fileName}`;
+
+      const { data, error } = await supabaseClient.storage.from('chat-attachments').upload(filePath, file);
+      if (error) {
+        alert("Upload failed: " + error.message);
+        return null;
+      }
+
+      const { data: publicUrlData } = supabaseClient.storage.from('chat-attachments').getPublicUrl(filePath);
+      fileInput.value = '';
+      document.getElementById('group-file-name').classList.add('hidden');
+      return publicUrlData.publicUrl;
+    }
+
+    function formatMessageText(text) {
+      if (!text) return '';
+      let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
+      return safeText.replace(/\n/g, '<br>');
+    }
+
+    // INSTANT OPTIMISTIC SENDER FUNCTION
+    async function sendGroupMessage() {
+      const input = document.getElementById('group-message-input');
+      let content = input.value.trim();
+      input.value = '';
+
+      const fileUrl = await uploadAttachment();
+      if (fileUrl) content = content ? `${content}\n\n📎 Attachment: ${fileUrl}` : `📎 Attachment: ${fileUrl}`;
+
+      if (!content) return;
+      updateActivityTimestamp();
+
+      const tempId = `temp_${Date.now()}`;
+      const optimisticMsg = {
+        id: tempId,
+        sender_id: currentUser.id,
+        sender_name: userProfile.name,
+        sender_role: userProfile.role,
+        content: content,
+        created_at: new Date().toISOString(),
+        isOptimistic: true
+      };
+
+      appendSingleMessage(optimisticMsg);
+
+      const { data, error } = await supabaseClient.from('messages').insert({
+        student_id: currentUser.id,
+        sender_id: currentUser.id,
+        sender_name: userProfile.name,
+        sender_role: userProfile.role,
+        content: content
+      }).select().single();
+
+      if (error) {
+        const tempElement = document.getElementById(`msg-${tempId}`);
+        if (tempElement) tempElement.classList.add('opacity-50', 'border-red-500');
+      } else if (data) {
+        const tempElement = document.getElementById(`msg-${tempId}`);
+        if (tempElement) tempElement.id = `msg-${data.id}`;
+        renderedMessageIds.delete(tempId);
+        renderedMessageIds.add(data.id);
+      }
+    }
+
+    async function loadAllGroupMessages() {
+      const { data: messages } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      const box = document.getElementById('group-messages-box');
+      box.innerHTML = '';
+      renderedMessageIds.clear();
+
+      if (messages) messages.forEach(msg => appendSingleMessage(msg));
+    }
+
+    function appendSingleMessage(msg) {
+      if (renderedMessageIds.has(msg.id)) return;
+      renderedMessageIds.add(msg.id);
+
+      const box = document.getElementById('group-messages-box');
+      const isMe = msg.sender_id === currentUser.id;
+      const isLecturer = (msg.sender_role || '').toLowerCase() === 'lecturer';
+
+      const msgDiv = document.createElement('div');
+      msgDiv.id = `msg-${msg.id}`;
+      msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
+
+      const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const displayName = msg.sender_name || (isLecturer ? 'Lecturer' : 'Student');
+
+      let senderHeader = '';
+      if (!isMe) {
+        const roleTag = isLecturer 
+          ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
+          : '<span class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
+
+        senderHeader = `
+          <div class="flex items-center gap-1.5 mb-1 px-1">
+            <span class="text-[11px] font-bold text-zinc-300">@${displayName}</span>
+            ${roleTag}
+          </div>
+        `;
+      }
+
+      let contentText = msg.deleted_for_everyone 
+        ? '<i class="opacity-60">This message was deleted</i>' 
+        : formatMessageText(msg.content);
+
+      let bubbleBg = 'bg-zinc-800 text-zinc-100 border border-zinc-700/50';
+      if (isMe) bubbleBg = 'bg-gradient-to-r from-cyan-600 to-pink-600 text-white';
+      else if (isLecturer) bubbleBg = 'bg-zinc-900 border border-amber-500/50 text-amber-100';
+
+      msgDiv.innerHTML = `
+        ${senderHeader}
+        <div class="max-w-[85%] p-3 rounded-2xl text-xs relative group ${bubbleBg} shadow-sm">
+          <p class="whitespace-pre-wrap leading-relaxed">${contentText}</p>
+          <div class="flex items-center justify-end gap-2 mt-1 text-[9px] opacity-60">
+            <span>${timeStr}</span>
+            ${(isMe && !msg.deleted_for_everyone) ? `
+              <button onclick="deleteMessage('${msg.id}')" class="hidden group-hover:inline underline text-red-300 hover:text-red-200 ml-1">Delete</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      box.appendChild(msgDiv);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function deleteMessage(msgId) {
+      await supabaseClient.from('messages').update({ deleted_for_everyone: true }).eq('id', msgId);
+      const msgText = document.querySelector(`#msg-${msgId} p`);
+      if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
+    }
+
+    function subscribeToRealtimeGroupChat() {
+      supabaseClient
+        .channel('public_group_chat')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          appendSingleMessage(payload.new);
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+          if (payload.new.deleted_for_everyone) {
+            const msgText = document.querySelector(`#msg-${payload.new.id} p`);
+            if (msgText) msgText.innerHTML = '<i class="opacity-60">This message was deleted</i>';
+          }
+        })
+        .subscribe();
+    }
+  </script>
+</body>
+</html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
