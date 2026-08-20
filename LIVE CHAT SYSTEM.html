@@ -56,6 +56,11 @@
       <input id="email" type="text" placeholder="Username (e.g. student01 or lecturer)" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-3 focus:outline-none focus:border-pink-500 text-sm">
       <input id="password" type="password" placeholder="Password" class="w-full p-3.5 bg-zinc-800 border border-zinc-700 text-white rounded-2xl mb-5 focus:outline-none focus:border-pink-500 text-sm">
       <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 text-white p-3.5 rounded-2xl font-bold text-sm hover:opacity-90 active:scale-95 transition">Sign In</button>
+      
+      <!-- MANUAL PWA INSTALL BUTTON -->
+      <button id="pwa-install-btn" onclick="installPWA()" class="w-full mt-3 bg-zinc-800 border border-cyan-500/50 text-cyan-400 p-3 rounded-2xl font-bold text-xs hover:bg-zinc-800/80 active:scale-95 transition flex items-center justify-center gap-2">
+        📲 Install App on Phone
+      </button>
     </div>
   </div>
 
@@ -72,6 +77,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button id="student-install-btn" onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-2.5 py-1 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
         <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
@@ -99,7 +105,10 @@
         <div>
           <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
         </div>
-        <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
+        <div class="flex items-center gap-2">
+          <button id="lecturer-install-btn" onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-full border border-cyan-500/40 font-semibold">📲 Install App</button>
+          <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
+        </div>
       </div>
       <div id="tiktok-feed" class="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-900/50"></div>
     </div>
@@ -150,6 +159,25 @@
     let replyTimeLeft = 120; // 2-minute reply window
 
     let failedMessages = [];
+    let deferredPrompt = null;
+
+    // CAPTURE PWA INSTALL PROMPT
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          deferredPrompt = null;
+        }
+      } else {
+        alert("📲 To install on your phone:\n\n• Android (Chrome): Tap the 3 dots menu top-right → Select 'Add to Home Screen' or 'Install App'.\n\n• iPhone (Safari): Tap the Share button at the bottom → Select 'Add to Home Screen'.");
+      }
+    }
 
     function updateActivityTimestamp() {
       if (currentUser) {
