@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -62,29 +62,29 @@
 
   <!-- UNIFIED GROUP CLASSROOM DASHBOARD -->
   <div id="group-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
-    <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
-      <div class="flex items-center gap-2.5">
+    <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0 gap-2">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
         <div id="user-avatar-wrapper" class="avatar-student rounded-full shrink-0">
-          <div id="user-avatar-display" class="w-9 h-9 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
+          <div id="user-avatar-display" class="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-xs font-bold text-white uppercase">US</div>
         </div>
-        <div class="overflow-hidden">
-          <div class="flex items-center gap-1.5">
-            <h2 id="user-handle-display" class="font-bold text-sm text-white truncate">@username</h2>
-            <span id="user-role-badge" class="text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">STUDENT</span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h2 id="user-handle-display" class="font-bold text-xs text-white truncate max-w-[110px]">@username</h2>
+            <span id="user-role-badge" class="text-[8px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-bold border border-cyan-500/30 shrink-0">STUDENT</span>
           </div>
-          <p class="text-[10px] text-emerald-400 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Group Class Live
+          <p class="text-[9px] text-emerald-400 flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Group Class
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="installPWA()" class="text-xs bg-cyan-500/20 text-cyan-400 px-2.5 py-1.5 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
-        <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="installPWA()" class="text-[11px] bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full border border-cyan-500/40 font-semibold">📲 Install</button>
+        <button onclick="logout()" class="text-[11px] bg-zinc-900 text-zinc-300 px-2.5 py-1 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
     </div>
 
     <!-- MAIN LIVE CHAT STREAM -->
-    <div id="group-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3.5 bg-black"></div>
+    <div id="group-messages-box" class="flex-1 min-h-0 p-3.5 overflow-y-auto space-y-3 bg-black"></div>
 
     <!-- INPUT BAR -->
     <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
@@ -109,6 +109,7 @@
     let currentUser = null;
     let userProfile = null;
     let renderedMessageIds = new Set();
+    let allLoadedMessages = [];
     let deferredPrompt = null;
 
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -191,24 +192,27 @@
       document.getElementById('auth-container').classList.add('hidden');
 
       let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      const userRole = profile?.role ? profile.role.toLowerCase() : 'student';
-      const rawName = (profile?.full_name || user.email.split('@')[0]);
+      
+      // Clean Username Parsing
+      const rawHandle = user.email ? user.email.split('@')[0] : 'user';
+      const userRole = profile?.role ? profile.role.toLowerCase() : (rawHandle.toLowerCase().includes('lecturer') ? 'lecturer' : 'student');
+      const cleanName = profile?.full_name || rawHandle;
 
-      userProfile = { id: user.id, email: user.email, role: userRole, name: rawName };
+      userProfile = { id: user.id, email: user.email, role: userRole, name: cleanName };
 
-      document.getElementById('user-handle-display').innerText = `@${rawName}`;
-      document.getElementById('user-avatar-display').innerText = rawName.substring(0, 2).toUpperCase();
+      document.getElementById('user-handle-display').innerText = `@${cleanName}`;
+      document.getElementById('user-avatar-display').innerText = cleanName.substring(0, 2).toUpperCase();
 
       const badge = document.getElementById('user-role-badge');
       const wrapper = document.getElementById('user-avatar-wrapper');
 
       if (userRole === 'lecturer') {
         badge.innerText = "🎓 LECTURER";
-        badge.className = "text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold border border-amber-500/40";
+        badge.className = "text-[8px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold border border-amber-500/40 shrink-0";
         wrapper.className = "avatar-lecturer rounded-full shrink-0";
       } else {
         badge.innerText = "⚡ STUDENT";
-        badge.className = "text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold border border-cyan-500/40";
+        badge.className = "text-[8px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-bold border border-cyan-500/30 shrink-0";
         wrapper.className = "avatar-student rounded-full shrink-0";
       }
 
@@ -273,6 +277,31 @@
       return safeText.replace(/\n/g, '<br>');
     }
 
+    // CALCULATE DYNAMIC CHAT SPEED & APPRECIATION BADGE FOR EACH USER
+    function getUserSpeedAppreciationBadge(senderId) {
+      const userMsgs = allLoadedMessages.filter(m => m.sender_id === senderId);
+      if (userMsgs.length < 2) return { label: '🌟 New Member', class: 'bg-zinc-800 text-zinc-300 border-zinc-700' };
+
+      let totalGaps = 0;
+      let gapCount = 0;
+
+      for (let i = 1; i < userMsgs.length; i++) {
+        const diffSec = (new Date(userMsgs[i].created_at) - new Date(userMsgs[i - 1].created_at)) / 1000;
+        if (diffSec > 0 && diffSec < 300) { // Limit window to active chatting gaps
+          totalGaps += diffSec;
+          gapCount++;
+        }
+      }
+
+      if (gapCount === 0) return { label: '⚡ Lightning Fast', class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' };
+
+      const avgSec = Math.round(totalGaps / gapCount);
+
+      if (avgSec <= 15) return { label: `⚡ ${avgSec}s • Lightning Fast`, class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' };
+      if (avgSec <= 45) return { label: `🔥 ${avgSec}s • Fast Reply`, class: 'bg-amber-500/20 text-amber-400 border-amber-500/40' };
+      return { label: `💬 ${avgSec}s • Steady`, class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' };
+    }
+
     // INSTANT OPTIMISTIC SENDER FUNCTION
     async function sendGroupMessage() {
       const input = document.getElementById('group-message-input');
@@ -292,10 +321,10 @@
         sender_name: userProfile.name,
         sender_role: userProfile.role,
         content: content,
-        created_at: new Date().toISOString(),
-        isOptimistic: true
+        created_at: new Date().toISOString()
       };
 
+      allLoadedMessages.push(optimisticMsg);
       appendSingleMessage(optimisticMsg);
 
       const { data, error } = await supabaseClient.from('messages').insert({
@@ -322,11 +351,12 @@
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
-        .limit(100);
+        .limit(150);
 
       const box = document.getElementById('group-messages-box');
       box.innerHTML = '';
       renderedMessageIds.clear();
+      allLoadedMessages = messages || [];
 
       if (messages) messages.forEach(msg => appendSingleMessage(msg));
     }
@@ -344,18 +374,31 @@
       msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
 
       const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const displayName = msg.sender_name || (isLecturer ? 'Lecturer' : 'Student');
+      
+      // Ensure precise student username fallback extraction
+      let displayName = msg.sender_name || 'student';
+      if (displayName.includes('@')) displayName = displayName.split('@')[0];
+
+      const speedBadge = getUserSpeedAppreciationBadge(msg.sender_id);
 
       let senderHeader = '';
       if (!isMe) {
         const roleTag = isLecturer 
-          ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
-          : '<span class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
+          ? '<span class="text-[8px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold border border-amber-500/30">🎓 LECTURER</span>'
+          : '<span class="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded font-bold">STUDENT</span>';
 
         senderHeader = `
-          <div class="flex items-center gap-1.5 mb-1 px-1">
-            <span class="text-[11px] font-bold text-zinc-300">@${displayName}</span>
+          <div class="flex items-center gap-1.5 mb-1 px-1 flex-wrap">
+            <span class="text-[11px] font-bold text-zinc-200">@${displayName}</span>
             ${roleTag}
+            <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
+          </div>
+        `;
+      } else {
+        senderHeader = `
+          <div class="flex items-center gap-1.5 mb-1 px-1 justify-end">
+            <span class="text-[8px] px-1.5 py-0.2 rounded font-semibold border ${speedBadge.class}">${speedBadge.label}</span>
+            <span class="text-[11px] font-bold text-zinc-300">You (@${displayName})</span>
           </div>
         `;
       }
@@ -395,6 +438,7 @@
       supabaseClient
         .channel('public_group_chat')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          allLoadedMessages.push(payload.new);
           appendSingleMessage(payload.new);
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
