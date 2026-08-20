@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
+        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 20:00</span>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
     </div>
@@ -93,7 +93,10 @@
     <!-- INBOX FEED PANEL -->
     <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
       <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
-        <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
+          <span id="lecturer-timer-badge" class="text-[10px] text-zinc-400 font-mono">Session: 20:00</span>
+        </div>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
       </div>
       <div id="tiktok-feed" class="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-900/50"></div>
@@ -137,16 +140,41 @@
     const SUPABASE_ANON_KEY = "sb_publishable_lrONtIn4ve7PZvCWtNkuvg_KGwDlwvO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const INACTIVITY_LIMIT_MS = 20 * 60 * 1000; // 20 minutes session threshold
+
     let currentUser = null;
     let userProfile = null;
     let activeStudentId = null;
     let countdownTimer = null;
-    let timeLeft = 120;
+
+    // Global activity tracker resets 20-min window
+    function refreshActivityTimestamp() {
+      if (currentUser) {
+        localStorage.setItem('classroom_last_activity', Date.now().toString());
+      }
+    }
+
+    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(event => {
+      window.addEventListener(event, refreshActivityTimestamp, { passive: true });
+    });
 
     window.onload = async () => {
       const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) handleUserSession(session.user);
+      if (session) {
+        if (checkSessionInactivity()) return;
+        handleUserSession(session.user);
+      }
     };
+
+    function checkSessionInactivity() {
+      const lastActivity = parseInt(localStorage.getItem('classroom_last_activity') || '0');
+      if (lastActivity > 0 && (Date.now() - lastActivity) >= INACTIVITY_LIMIT_MS) {
+        alert("⏰ Session expired after 20 minutes of inactivity.");
+        logout();
+        return true;
+      }
+      return false;
+    }
 
     async function login() {
       let email = document.getElementById('email').value.trim();
@@ -156,11 +184,14 @@
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) return alert("Login failed: " + error.message);
+      
+      refreshActivityTimestamp();
       handleUserSession(data.user);
     }
 
     async function logout() {
       clearInterval(countdownTimer);
+      localStorage.removeItem('classroom_last_activity');
       await supabaseClient.auth.signOut();
       location.reload();
     }
@@ -172,6 +203,12 @@
       let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
       const userRole = profile?.role ? profile.role.toLowerCase() : 'student';
       userProfile = profile || { id: user.id, email: user.email, role: userRole };
+
+      if (!localStorage.getItem('classroom_last_activity')) {
+        refreshActivityTimestamp();
+      }
+
+      startInactivityTimer();
 
       if (userRole === 'lecturer') {
         const lectDash = document.getElementById('lecturer-dashboard');
@@ -188,14 +225,40 @@
         document.getElementById('student-username-display').innerText = `@${cleanUsername}`;
         document.getElementById('student-avatar-display').innerText = cleanUsername.substring(0, 2);
 
-        startCountdownTimer();
         loadStudentMessages();
       }
       subscribeToMessages();
     }
 
+    function startInactivityTimer() {
+      clearInterval(countdownTimer);
+
+      countdownTimer = setInterval(() => {
+        const lastActivity = parseInt(localStorage.getItem('classroom_last_activity') || Date.now().toString());
+        const elapsed = Date.now() - lastActivity;
+        const remainingMs = INACTIVITY_LIMIT_MS - elapsed;
+
+        if (remainingMs <= 0) {
+          clearInterval(countdownTimer);
+          alert("⏰ Session expired after 20 minutes of inactivity.");
+          logout();
+        } else {
+          const totalSec = Math.floor(remainingMs / 1000);
+          const minutes = Math.floor(totalSec / 60);
+          const seconds = totalSec % 60;
+          const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+          const studBadge = document.getElementById('student-timer-badge');
+          if (studBadge) studBadge.innerText = `⏱️ ${formatted}`;
+
+          const lectBadge = document.getElementById('lecturer-timer-badge');
+          if (lectBadge) lectBadge.innerText = `Session: ${formatted}`;
+        }
+      }, 1000);
+    }
+
     function handleKeyInput(event, role) {
-      if (event.key === 'Enter' && !event.shiftKey) {
+      if ((event.key === 'Enter' || event.keyCode === 13) && !event.shiftKey) {
         event.preventDefault();
         if (role === 'student') sendStudentMessage();
         else sendLecturerMessage();
@@ -245,30 +308,6 @@
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       safeText = safeText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="underline text-cyan-400 font-semibold break-all">${url}</a>`);
       return safeText.replace(/\n/g, '<br>');
-    }
-
-    function startCountdownTimer() {
-      clearInterval(countdownTimer);
-      timeLeft = 120;
-      updateTimerDisplay();
-
-      countdownTimer = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay();
-        if (timeLeft <= 0) {
-          clearInterval(countdownTimer);
-          alert("⏰ TIME IS UP! You failed to reply within 2 minutes.");
-          logout();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      const badge = document.getElementById('student-timer-badge');
-      if (badge) badge.innerText = `⏱️ ${formatted}`;
     }
 
     function calculateAvgResponseSpeed(messages, studentId) {
@@ -397,6 +436,12 @@
     async function sendLecturerMessage() {
       const input = document.getElementById('lecturer-message-input');
       let content = input.value.trim();
+      const fileInput = document.getElementById('lecturer-file-input');
+      const hasFile = fileInput.files && fileInput.files.length > 0;
+
+      if (!content && !hasFile) return;
+
+      input.value = '';
       const fileData = await uploadAttachment('lecturer-file-input');
 
       if (fileData) {
@@ -406,13 +451,20 @@
 
       if (!content || !activeStudentId) return;
 
-      await supabaseClient.from('messages').insert({
+      refreshActivityTimestamp();
+
+      const { error } = await supabaseClient.from('messages').insert({
         student_id: activeStudentId,
         sender_id: currentUser.id,
         content: content
       });
 
-      input.value = '';
+      if (error) {
+        alert("Failed to send message: " + error.message);
+        input.value = content;
+      } else {
+        await loadLecturerMessages();
+      }
     }
 
     async function loadStudentMessages() {
@@ -435,6 +487,12 @@
     async function sendStudentMessage() {
       const input = document.getElementById('student-message-input');
       let content = input.value.trim();
+      const fileInput = document.getElementById('student-file-input');
+      const hasFile = fileInput.files && fileInput.files.length > 0;
+
+      if (!content && !hasFile) return;
+
+      input.value = '';
       const fileData = await uploadAttachment('student-file-input');
 
       if (fileData) {
@@ -444,19 +502,20 @@
 
       if (!content) return;
 
-      if (content.length >= 10) {
-        startCountdownTimer();
-      } else {
-        alert("⚠️ Message under 10 characters! 2-minute timer was NOT reset.");
-      }
+      refreshActivityTimestamp();
 
-      await supabaseClient.from('messages').insert({
+      const { error } = await supabaseClient.from('messages').insert({
         student_id: currentUser.id,
         sender_id: currentUser.id,
         content: content
       });
 
-      input.value = '';
+      if (error) {
+        alert("Failed to send message: " + error.message);
+        input.value = content;
+      } else {
+        await loadStudentMessages();
+      }
     }
 
     function renderMessages(messages, containerId) {
