@@ -4,7 +4,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Classroom Chat</title>
   
-  <!-- PWA & Mobile Web App Settings -->
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -53,7 +52,6 @@
 
   <!-- 1. STUDENT VIEW -->
   <div id="student-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40">
-    <!-- STUDENT HEADER -->
     <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
       <div class="flex items-center gap-2.5">
         <div class="tiktok-avatar rounded-full shrink-0">
@@ -65,15 +63,13 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 20:00</span>
+        <span id="student-timer-badge" class="text-xs bg-red-600 text-white px-2.5 py-1 rounded-full font-mono font-bold animate-pulse">⏱️ 02:00</span>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Exit</button>
       </div>
     </div>
 
-    <!-- STUDENT MESSAGES CONTAINER -->
     <div id="student-messages-box" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 bg-black"></div>
 
-    <!-- STUDENT INPUT BAR -->
     <div class="p-3 border-t border-zinc-900 bg-black flex flex-col gap-1 shrink-0">
       <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5">
         <label class="cursor-pointer text-zinc-400 hover:text-white shrink-0 text-lg" title="Attach file (Up to 50MB)">
@@ -89,20 +85,16 @@
 
   <!-- 2. LECTURER INBOX & CHAT SCREEN -->
   <div id="lecturer-dashboard" class="hidden fixed inset-0 w-full max-w-md mx-auto bg-black flex-col z-40 overflow-hidden">
-    
-    <!-- INBOX FEED PANEL -->
     <div id="lecturer-inbox-panel" class="flex flex-col h-full w-full bg-black">
       <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
         <div>
           <h1 class="text-xl font-bold text-white tracking-tight">Inbox</h1>
-          <span id="lecturer-timer-badge" class="text-[10px] text-zinc-400 font-mono">Session: 20:00</span>
         </div>
         <button onclick="logout()" class="text-xs bg-zinc-900 text-zinc-300 px-3 py-1.5 rounded-full border border-zinc-800 font-semibold">Logout</button>
       </div>
       <div id="tiktok-feed" class="flex-1 min-h-0 overflow-y-auto divide-y divide-zinc-900/50"></div>
     </div>
 
-    <!-- DIRECT CHAT PANEL -->
     <div id="lecturer-chat-panel" class="hidden flex-col h-full w-full bg-black fixed inset-0 z-50 max-w-md mx-auto">
       <div class="p-3 border-b border-zinc-900 flex items-center justify-between bg-black shrink-0">
         <div class="flex items-center gap-3">
@@ -132,7 +124,6 @@
         <div id="lecturer-file-name" class="text-[10px] text-cyan-400 font-semibold hidden truncate px-3"></div>
       </div>
     </div>
-
   </div>
 
   <script>
@@ -140,41 +131,39 @@
     const SUPABASE_ANON_KEY = "sb_publishable_lrONtIn4ve7PZvCWtNkuvg_KGwDlwvO";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const INACTIVITY_LIMIT_MS = 20 * 60 * 1000; // 20 minutes session threshold
+    const SESSION_TIMEOUT_MS = 20 * 60 * 1000; // 20-minute app session persistence
 
     let currentUser = null;
     let userProfile = null;
     let activeStudentId = null;
-    let countdownTimer = null;
 
-    // Global activity tracker resets 20-min window
-    function refreshActivityTimestamp() {
+    let replyCountdownInterval = null;
+    let replyTimeLeft = 120; // 2-minute reply window
+
+    let failedMessages = []; // Cache failed messages for instant retry
+
+    function updateActivityTimestamp() {
       if (currentUser) {
         localStorage.setItem('classroom_last_activity', Date.now().toString());
       }
     }
 
-    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(event => {
-      window.addEventListener(event, refreshActivityTimestamp, { passive: true });
+    ['mousemove', 'keydown', 'touchstart', 'click', 'scroll'].forEach(evt => {
+      window.addEventListener(evt, updateActivityTimestamp, { passive: true });
     });
 
     window.onload = async () => {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
-        if (checkSessionInactivity()) return;
+        const lastAct = parseInt(localStorage.getItem('classroom_last_activity') || '0');
+        if (lastAct > 0 && (Date.now() - lastAct) >= SESSION_TIMEOUT_MS) {
+          alert("⏰ Session expired after 20 minutes of inactivity.");
+          logout();
+          return;
+        }
         handleUserSession(session.user);
       }
     };
-
-    function checkSessionInactivity() {
-      const lastActivity = parseInt(localStorage.getItem('classroom_last_activity') || '0');
-      if (lastActivity > 0 && (Date.now() - lastActivity) >= INACTIVITY_LIMIT_MS) {
-        alert("⏰ Session expired after 20 minutes of inactivity.");
-        logout();
-        return true;
-      }
-      return false;
-    }
 
     async function login() {
       let email = document.getElementById('email').value.trim();
@@ -184,13 +173,13 @@
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) return alert("Login failed: " + error.message);
-      
-      refreshActivityTimestamp();
+
+      updateActivityTimestamp();
       handleUserSession(data.user);
     }
 
     async function logout() {
-      clearInterval(countdownTimer);
+      clearInterval(replyCountdownInterval);
       localStorage.removeItem('classroom_last_activity');
       await supabaseClient.auth.signOut();
       location.reload();
@@ -204,11 +193,7 @@
       const userRole = profile?.role ? profile.role.toLowerCase() : 'student';
       userProfile = profile || { id: user.id, email: user.email, role: userRole };
 
-      if (!localStorage.getItem('classroom_last_activity')) {
-        refreshActivityTimestamp();
-      }
-
-      startInactivityTimer();
+      updateActivityTimestamp();
 
       if (userRole === 'lecturer') {
         const lectDash = document.getElementById('lecturer-dashboard');
@@ -225,36 +210,36 @@
         document.getElementById('student-username-display').innerText = `@${cleanUsername}`;
         document.getElementById('student-avatar-display').innerText = cleanUsername.substring(0, 2);
 
+        startReplyTimer();
         loadStudentMessages();
       }
       subscribeToMessages();
     }
 
-    function startInactivityTimer() {
-      clearInterval(countdownTimer);
+    // 2-MINUTE STUDENT REPLY COUNTDOWN TIMER
+    function startReplyTimer() {
+      clearInterval(replyCountdownInterval);
+      replyTimeLeft = 120;
+      updateReplyTimerUI();
 
-      countdownTimer = setInterval(() => {
-        const lastActivity = parseInt(localStorage.getItem('classroom_last_activity') || Date.now().toString());
-        const elapsed = Date.now() - lastActivity;
-        const remainingMs = INACTIVITY_LIMIT_MS - elapsed;
+      replyCountdownInterval = setInterval(() => {
+        replyTimeLeft--;
+        updateReplyTimerUI();
 
-        if (remainingMs <= 0) {
-          clearInterval(countdownTimer);
-          alert("⏰ Session expired after 20 minutes of inactivity.");
+        if (replyTimeLeft <= 0) {
+          clearInterval(replyCountdownInterval);
+          alert("⏰ TIME IS UP! You failed to reply within 2 minutes.");
           logout();
-        } else {
-          const totalSec = Math.floor(remainingMs / 1000);
-          const minutes = Math.floor(totalSec / 60);
-          const seconds = totalSec % 60;
-          const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-          const studBadge = document.getElementById('student-timer-badge');
-          if (studBadge) studBadge.innerText = `⏱️ ${formatted}`;
-
-          const lectBadge = document.getElementById('lecturer-timer-badge');
-          if (lectBadge) lectBadge.innerText = `Session: ${formatted}`;
         }
       }, 1000);
+    }
+
+    function updateReplyTimerUI() {
+      const minutes = Math.floor(replyTimeLeft / 60);
+      const seconds = replyTimeLeft % 60;
+      const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      const badge = document.getElementById('student-timer-badge');
+      if (badge) badge.innerText = `⏱️ ${formatted}`;
     }
 
     function handleKeyInput(event, role) {
@@ -430,28 +415,25 @@
         .eq('student_id', activeStudentId)
         .order('created_at', { ascending: true });
 
-      renderMessages(messages || [], 'lecturer-messages-box');
+      renderMessages(messages || [], 'lecturer-messages-box', activeStudentId);
     }
 
-    async function sendLecturerMessage() {
+    async function sendLecturerMessage(retryContent = null, failedId = null) {
       const input = document.getElementById('lecturer-message-input');
-      let content = input.value.trim();
-      const fileInput = document.getElementById('lecturer-file-input');
-      const hasFile = fileInput.files && fileInput.files.length > 0;
-
-      if (!content && !hasFile) return;
-
-      input.value = '';
-      const fileData = await uploadAttachment('lecturer-file-input');
-
-      if (fileData) {
-        content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
-        document.getElementById('lecturer-file-name').classList.add('hidden');
+      let content = retryContent || input.value.trim();
+      
+      if (!retryContent) {
+        const fileData = await uploadAttachment('lecturer-file-input');
+        if (fileData) {
+          content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
+          document.getElementById('lecturer-file-name').classList.add('hidden');
+        }
+        input.value = '';
       }
 
       if (!content || !activeStudentId) return;
 
-      refreshActivityTimestamp();
+      updateActivityTimestamp();
 
       const { error } = await supabaseClient.from('messages').insert({
         student_id: activeStudentId,
@@ -460,11 +442,16 @@
       });
 
       if (error) {
-        alert("Failed to send message: " + error.message);
-        input.value = content;
+        if (!failedId) {
+          failedMessages.push({ id: Date.now(), content, targetStudentId: activeStudentId, senderRole: 'lecturer' });
+        }
       } else {
-        await loadLecturerMessages();
+        if (failedId) {
+          failedMessages = failedMessages.filter(m => m.id !== failedId);
+        }
       }
+
+      loadLecturerMessages();
     }
 
     async function loadStudentMessages() {
@@ -481,28 +468,29 @@
         badge.className = `text-[9px] px-2 py-0.5 rounded-full font-bold ${speedData.color}`;
       }
 
-      renderMessages(messages || [], 'student-messages-box');
+      renderMessages(messages || [], 'student-messages-box', currentUser.id);
     }
 
-    async function sendStudentMessage() {
+    async function sendStudentMessage(retryContent = null, failedId = null) {
       const input = document.getElementById('student-message-input');
-      let content = input.value.trim();
-      const fileInput = document.getElementById('student-file-input');
-      const hasFile = fileInput.files && fileInput.files.length > 0;
+      let content = retryContent || input.value.trim();
 
-      if (!content && !hasFile) return;
-
-      input.value = '';
-      const fileData = await uploadAttachment('student-file-input');
-
-      if (fileData) {
-        content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
-        document.getElementById('student-file-name').classList.add('hidden');
+      if (!retryContent) {
+        const fileData = await uploadAttachment('student-file-input');
+        if (fileData) {
+          content = content ? `${content}\n\n📎 Attachment: ${fileData.url}` : `📎 Attachment: ${fileData.url}`;
+          document.getElementById('student-file-name').classList.add('hidden');
+        }
+        input.value = '';
       }
 
       if (!content) return;
 
-      refreshActivityTimestamp();
+      if (content.length >= 10) {
+        startReplyTimer();
+      }
+
+      updateActivityTimestamp();
 
       const { error } = await supabaseClient.from('messages').insert({
         student_id: currentUser.id,
@@ -511,14 +499,19 @@
       });
 
       if (error) {
-        alert("Failed to send message: " + error.message);
-        input.value = content;
+        if (!failedId) {
+          failedMessages.push({ id: Date.now(), content, targetStudentId: currentUser.id, senderRole: 'student' });
+        }
       } else {
-        await loadStudentMessages();
+        if (failedId) {
+          failedMessages = failedMessages.filter(m => m.id !== failedId);
+        }
       }
+
+      loadStudentMessages();
     }
 
-    function renderMessages(messages, containerId) {
+    function renderMessages(messages, containerId, studentContextId) {
       const box = document.getElementById(containerId);
       box.innerHTML = '';
 
@@ -548,6 +541,32 @@
         `;
         box.appendChild(msgDiv);
       });
+
+      // RENDER FAILED MESSAGES WITH "TAP TO RESEND" BUTTON
+      const currentFailed = failedMessages.filter(m => m.targetStudentId === studentContextId);
+      currentFailed.forEach(failed => {
+        const failedDiv = document.createElement('div');
+        failedDiv.className = 'flex flex-col items-end my-1';
+        
+        const isLecturer = userProfile.role === 'lecturer';
+        const retryFn = isLecturer 
+          ? `sendLecturerMessage('${failed.content.replace(/'/g, "\\'")}', ${failed.id})`
+          : `sendStudentMessage('${failed.content.replace(/'/g, "\\'")}', ${failed.id})`;
+
+        failedDiv.innerHTML = `
+          <div class="max-w-[85%] p-3 rounded-2xl text-xs bg-red-950/80 border border-red-500/80 text-white flex flex-col gap-2">
+            <p class="whitespace-pre-wrap leading-relaxed opacity-90">${formatMessageText(failed.content)}</p>
+            <div class="flex items-center justify-between border-t border-red-500/40 pt-2 mt-1">
+              <span class="text-[10px] text-red-300 font-semibold">⚠️ Failed to send</span>
+              <button onclick="${retryFn}" class="bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-[10px] px-2.5 py-1 rounded-full transition shadow">
+                🔄 Tap to Resend
+              </button>
+            </div>
+          </div>
+        `;
+        box.appendChild(failedDiv);
+      });
+
       box.scrollTop = box.scrollHeight;
     }
 
